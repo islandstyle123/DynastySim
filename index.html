@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<!-- Long Trust Lab. Copyright (c) 2026 Meeks. Released under the MIT License (see the About section on the page, or the LICENSE file). -->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Long Trust Lab: dynasty trust simulator</title>
+<link rel="canonical" href="https://longtrustlab.com/">
+<meta name="description" content="Free simulator for a multi-generation family trust. Model payouts, taxes, family growth and investment risk over 250 years. Runs in your browser; nothing is sent or stored.">
+<meta name="theme-color" content="#1D2733">
+<meta property="og:type" content="website"><meta property="og:title" content="Long Trust Lab"><meta property="og:url" content="https://longtrustlab.com/"><meta property="og:site_name" content="Long Trust Lab"><meta property="og:description" content="Free simulator for a multi-generation family trust. Model payouts, taxes, family growth and investment risk over 250 years. Runs in your browser; nothing is sent or stored.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%9B%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF0F3;--card:#FFFFFF;--tx:#1D232B;--mu:#5B6675;--bd:#D3D8DF;--ac:#1A5FB4;--ac2:#B5651D;--bad:#B42318;--stripe:#F7F8FA;--cur:rgba(26,95,180,.08);--head:#F4F6F8;--sel:#E3EDFA;--top:#1D2733;--toptx:#E6EAF0;--topmu:#9AA6B6;--topbd:#3A4757;--mono:"Source Code Pro",ui-monospace,Menlo,Consolas,monospace;--sans:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161D;--card:#19202A;--tx:#E2E7EE;--mu:#97A3B4;--bd:#2C3644;--ac:#6EA8F0;--ac2:#E9A15F;--bad:#FF8A80;--stripe:rgba(255,255,255,.025);--cur:rgba(110,168,240,.12);--head:#1F2733;--sel:rgba(110,168,240,.16);--top:#0B0F14;--topbd:#2C3644}}
+:root[data-theme="dark"]{--bg:#11161D;--card:#19202A;--tx:#E2E7EE;--mu:#97A3B4;--bd:#2C3644;--ac:#6EA8F0;--ac2:#E9A15F;--bad:#FF8A80;--stripe:rgba(255,255,255,.025);--cur:rgba(110,168,240,.12);--head:#1F2733;--sel:rgba(110,168,240,.16);--top:#0B0F14;--topbd:#2C3644}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.45 var(--sans)}
+.wrap{max-width:1680px;margin:0 auto}
+h3{font:700 13px/1.3 var(--sans);margin:0 0 8px}
+.mu{color:var(--mu)}.sm{font-size:12px}
+/* top bar */
+.top{background:var(--top);color:var(--toptx);display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:8px 14px}
+.brand{display:flex;flex-direction:column;min-width:0}.bt{font:700 15px var(--sans);letter-spacing:.01em}.bs{font-size:12px;color:var(--topmu)}
+.acts{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
+.top button{border-color:var(--topbd);background:transparent;color:var(--toptx)}.top button:hover,.top button:focus-visible{border-color:var(--toptx);color:#fff;background:transparent}
+.top button.p{background:var(--ac);border-color:var(--ac);color:#fff}
+/* tab strip */
+.tabbar{background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;padding:0 10px;position:sticky;top:0;z-index:5}
+.tabs{display:flex;gap:0}.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;padding:9px 12px;min-height:38px;color:var(--mu);background:transparent;font:600 13px var(--sans)}
+.tabs button.on{color:var(--tx);border-bottom-color:var(--ac)}.tabs button:hover{background:transparent;color:var(--tx);border-color:transparent}.tabs button.on:hover{border-bottom-color:var(--ac)}.tab[hidden]{display:none}
+#st{margin-left:auto;text-align:right}
+/* layout */
+.grid{display:grid;grid-template-columns:280px minmax(0,1fr);align-items:start}
+aside{background:var(--card);border-right:1px solid var(--bd);position:sticky;top:39px;max-height:calc(100vh - 39px);overflow-y:auto;padding:0 0 16px}
+main{padding:10px;min-width:0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:4px;padding:10px 12px}
+.card>h3{margin:-10px -12px 10px;padding:8px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+/* parameters pane */
+aside>details>summary{font:700 11px var(--sans);letter-spacing:.07em;text-transform:uppercase;color:var(--mu);cursor:pointer;padding:10px 12px 6px;list-style:none}
+aside .bar{padding:0 12px;margin:0 0 8px}
+details.sec{border-top:1px solid var(--bd)}details.sec>summary{font:700 11px var(--sans);letter-spacing:.07em;text-transform:uppercase;color:var(--mu);cursor:pointer;padding:9px 12px}
+details.sec>summary:hover{color:var(--tx)}details.sec>div{padding:0 12px 10px}
+.f{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:3px 8px;margin:0;padding:4px 0;font-size:12.5px}.f.off{opacity:.42}
+.f>label{flex:1 1 0;min-width:0}.rg label{flex:none}
+.f input[type=number],.in{font:12px var(--mono);padding:4px 6px;height:26px;border:1px solid var(--bd);border-radius:3px;background:var(--card);color:var(--tx)}
+.f input[type=number]{width:92px;text-align:right}
+.f input:focus,.in:focus{border-color:var(--ac);outline:0;box-shadow:0 0 0 2px var(--cur)}
+.rg{display:flex;flex-direction:column;gap:3px;margin-top:4px;font-size:12px}.rg label{display:block;color:var(--mu)}.rg b{color:var(--tx);font-weight:600}.f.blk{display:block}
+.note{font-size:11.5px;color:var(--mu);background:var(--head);border:1px solid var(--bd);border-radius:3px;padding:6px 8px;margin:6px 0}
+/* results */
+.sumbox{background:var(--card);border:1px solid var(--bd);border-radius:4px;padding:9px 12px;margin:0 0 8px;font-size:13.5px;line-height:1.5}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:4px;padding:8px 10px;display:flex;flex-direction:column;gap:1px}
+.k .v{font:700 22px/1.2 var(--sans);font-variant-numeric:tabular-nums;order:1}.k .l{font-size:12px;color:var(--mu);order:0}.k .d{font:11px var(--mono);color:var(--ac2);min-height:0;order:2}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+button{font:600 12.5px var(--sans);min-height:28px;padding:4px 10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:4px;cursor:pointer}
+button:hover,button:focus-visible{border-color:var(--ac);color:var(--ac)}button.p{background:var(--ac);border-color:var(--ac);color:#fff}button.p:hover{filter:brightness(1.08);color:#fff}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:10px;margin-bottom:10px}
+.ch{position:relative;height:280px}
+table{border-collapse:collapse;width:100%;font:11.5px var(--mono);font-variant-numeric:tabular-nums}
+th,td{padding:5px 10px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:var(--mu);font:600 11.5px var(--sans);background:var(--head)}
+#ft th{position:sticky;top:0;background:var(--head)}
+#t3 td:first-child{white-space:normal;min-width:200px;font-family:var(--sans)}#t3 button{font-size:11px;min-height:22px;padding:1px 6px}
+.busy{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--bd);border-radius:4px;padding:6px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);z-index:40;display:flex;gap:8px;align-items:center;font-size:12.5px}.busy[hidden]{display:none}
+.sp{width:13px;height:13px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.sp{animation:none}}
+:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.ex{font-size:12.5px;color:var(--mu);margin:8px 0 0;line-height:1.5;max-width:100ch}
+.err{flex-basis:100%;color:var(--bad);font-size:11.5px}.err:empty{display:none}
+.f.bad input,.in.bad{border-color:var(--bad);box-shadow:0 0 0 2px rgba(180,35,24,.15)}
+.sc{max-height:560px;overflow:auto;border:1px solid var(--bd);border-radius:3px}
+.sc th{position:sticky;top:0;z-index:1;box-shadow:0 1px 0 var(--bd);white-space:normal;vertical-align:bottom}
+.sc tr:nth-child(even) td{background:var(--stripe)}.sc tr:hover td{background:var(--sel)}
+.sc td.cur,.sc th.cur{background:var(--sel);font-weight:600}
+#t3 td:first-child,#t3 th:first-child{position:sticky;left:0;background:var(--card);z-index:1}#t3 th:first-child{z-index:2;background:var(--head)}
+details.card>summary{cursor:pointer}
+main,.tab,.card{min-width:0}main{overflow-x:clip}
+.printonly{display:none}
+#fab,.mob,.scrim{display:none}
+@media(max-width:860px){
+ .grid{grid-template-columns:1fr}
+ aside{position:fixed;top:0;bottom:0;left:0;max-height:none;width:min(92vw,380px);z-index:30;border-right:1px solid var(--bd);transform:translateX(-105%);transition:transform .25s ease;padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));box-shadow:4px 0 18px rgba(0,0,0,.25)}
+ body.so aside{transform:none}
+ #setd>summary{display:none}
+ .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:25}body.so .scrim{display:block}
+ .mob{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--card);padding:10px 12px;z-index:2;border-bottom:1px solid var(--bd)}
+ #fab{display:block;position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;padding:10px 16px;font-size:14px;border-radius:4px;box-shadow:0 3px 12px rgba(0,0,0,.3)}
+ body.so #fab{display:none}
+ .wrap{padding-bottom:80px}
+ .bs{display:none}.acts{margin-left:0}
+ .ch{height:230px}
+ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.k .v{font-size:19px}
+ .tabbar{overflow-x:auto}.tabs button{white-space:nowrap}#st{display:none}
+ .sc{max-height:440px}
+ .f input[type=number]{width:100px;font-size:16px;height:32px}.in{font-size:16px;height:32px}
+}
+@media(prefers-reduced-motion:reduce){aside{transition:none}}
+@media print{
+ body{background:#fff;color:#000}.acts,aside,.bar,.tabbar,#shr,#busy,#fab,.scrim,#exb,#cn,#t3 button,#tab-cmp,#tab-fam,#about,noscript{display:none!important}
+ .top{background:#fff;color:#000;border-bottom:2px solid #000}.bs{color:#444}
+ .grid{display:block}main{padding:0}.printonly{display:block}.tab{display:block!important}
+ .card,.k,.sumbox{break-inside:avoid;border-color:#bbb}.sc{max-height:none;overflow:visible;border:0}.sc th{position:static}
+ .ch{height:250px}.cards{grid-template-columns:1fr 1fr}
+}
+</style></head><body><noscript><p style="padding:16px">This calculator needs JavaScript. Please enable it in your browser.</p></noscript><div class="wrap">
+<header class="top"><div class="brand"><span class="bt">Long Trust Lab</span><span class="bs">Simulates an irrevocable pot trust that pays all living descendants each year, weighted by generation. All values in today's dollars.</span></div>
+<div class="acts"><button id="shb" title="Builds a link that restores your current settings">Share link</button><button id="exd" title="Spreadsheet-ready file with settings, summary, year-by-year results and tables">Download CSV</button><button id="exp" title="Opens your browser's print dialog; choose Save as PDF to keep a copy">Print report</button><button class="p" id="runb">Run simulations</button></div></header>
+<div class="tabbar"><div class="tabs" role="tablist"><button role="tab" class="on" aria-selected="true" data-t="ov">Overview</button><button role="tab" aria-selected="false" data-t="cmp">Compare</button><button role="tab" aria-selected="false" data-t="fam">One family</button><button role="tab" aria-selected="false" data-t="tab">Tables</button></div><span class="sm mu" id="st"></span></div>
+<div class="grid"><aside><div class="mob"><b>Settings</b><button class="p" id="setclose">Show results</button></div>
+<details id="setd" open><summary>Parameters</summary>
+<div class="bar" style="margin:0 0 8px"><span class="sm mu">Return presets</span><button data-r="5">Conservative 5%</button><button data-r="6.5">Base 6.5%</button><button data-r="8.75">Optimistic 8.75%</button><button id="rst">Reset all</button></div>
+<div id="ctl"></div></details></aside><main>
+<div class="printonly" id="prh"></div>
+
+<div id="sum" class="sumbox" aria-live="polite"></div>
+<div id="kpis" class="kpis"></div>
+<div class="bar"><input class="in" id="sn" type="text" placeholder="Scenario name" aria-label="Scenario name" style="width:150px"><button id="sv">Save scenario</button><button id="uc">Clear saved</button><button id="more" title="Adds 1,000 simulations, up to 5,000. The earlier simulations stay the same.">Run more simulations</button><button id="fam">Generate a random family</button><button id="cmpb"></button><label class="sm" style="display:flex;align-items:center;gap:4px;margin-left:4px"><input type="checkbox" id="lg" checked> Log scale</label></div>
+<div id="shr" class="sm" hidden style="margin:0 0 8px">Share link: <input class="in" id="shu" readonly aria-label="Share link" style="width:min(560px,100%)"> <span class="mu" id="shm"></span></div>
+<div id="exb" hidden class="card sm" style="margin:0 0 10px"><b>Results as text.</b> <span class="mu">If the download did not start (some previews block downloads), copy this text and paste it into a spreadsheet.</span> <button id="exc">Close</button><textarea id="ext" readonly rows="6" style="width:100%;margin-top:6px;font:12px ui-monospace,Menlo,Consolas,monospace"></textarea></div>
+<p class="sm mu" id="cn" style="margin:0 0 8px"></p>
+<section class="tab" id="tab-ov" role="tabpanel">
+<div class="cards">
+<div class="card"><h3>Trust value, real (median, 10th to 90th percentile)</h3><div class="ch"><canvas id="c1"></canvas></div><p class="ex" id="x1"></p></div>
+<div class="card"><h3>Living descendants</h3><div class="ch"><canvas id="c2"></canvas></div><p class="ex" id="x2"></p></div>
+<div class="card"><h3>Median annual payout per person, real $, by generation (hover a year for beneficiary counts)</h3><div class="ch"><canvas id="c3"></canvas></div><p class="ex" id="x3"></p></div></div>
+<div class="card" style="margin-bottom:12px"><h3>Payout target</h3><div class="bar" style="margin-top:0"><span class="sm">Generation</span><input class="in" id="tg" type="number" min="1" max="14" step="1" value="2" style="width:60px"><span class="sm">annual payout per person of at least $</span><input class="in" id="ta" type="number" min="0" step="1000" value="50000" style="width:110px"><span class="sm mu">(real dollars)</span><span class="err" id="te" role="alert"></span></div><div class="ch"><canvas id="c6"></canvas></div><p class="ex" id="x6"></p><div class="sc" style="margin-top:8px"><table id="t4"></table></div></div>
+</section>
+<section class="tab" id="tab-cmp" role="tabpanel" hidden>
+<div class="card" style="margin-bottom:12px"><h3>Compare scenarios side by side</h3><p class="sm mu" style="margin:0 0 6px">Change settings, press Save scenario, and repeat (up to 5). The first saved scenario is the baseline for the percentage changes in the top cards.</p><div class="ch"><canvas id="c4"></canvas></div><div class="sc" style="margin-top:8px"><table id="t3"></table></div></div>
+<p class="sm mu" id="cmph">Turn on "Compare trust structures" above to compare one pot with a separate trust for each branch.</p><div class="card" id="cmpc" style="margin-bottom:12px"><h3>One pot vs a separate trust for each branch</h3>
+<p class="sm mu" style="margin:0 0 4px"><b>One pot</b> (your current design): every living descendant is paid each year, with older generations getting more.</p>
+<p class="sm mu" style="margin:0 0 4px"><b>Branch trusts</b>: the money is split equally among the starting children, and each share is held for that person and pays only that person. When someone dies, their share passes equally to their living children. If they have none, it goes equally to the other shares. Grandchildren receive nothing until their parent dies.</p>
+<p class="sm mu" style="margin:0 0 4px"><b>Lifetime trusts, then outright</b>: the same split and the same payouts to each child, but when a child dies the remaining money is paid out to their living children in a lump sum and the trust for that branch ends. After that the money is theirs, outside the trust, so later generations show nothing from the trust.</p>
+<p class="sm mu" style="margin:0 0 8px">Both use the same returns and the same simulated families in every run, so the differences come from the structure alone. Gen 1 payouts are the same under branch trusts and lifetime trusts, so the dashed lines also describe lifetime trusts for generation 1. Branch trusts always use the percentage-of-value rule, and the starting split is among generation 1 (or among generation 2 if generation 1 is empty). <span id="cmpn"></span></p>
+<div class="cards"><div class="card"><h3>Median payout per person (solid: one pot, dashed: branch trusts)</h3><div class="ch"><canvas id="c7"></canvas></div></div>
+<div class="card"><h3>Share of living descendants receiving payouts (average)</h3><div class="ch"><canvas id="c8"></canvas></div></div></div>
+<p class="ex" id="cmpx" style="margin:0 0 8px"></p><p class="sm" id="cmps" style="margin:0 0 8px"></p><div class="sc"><table id="t5"></table></div><div class="sc" style="margin-top:10px"><table id="t6"></table></div></div>
+</section>
+<section class="tab" id="tab-fam" role="tabpanel" hidden>
+<p class="sm mu" id="famh">Press "Generate a random family" above to simulate one family year by year with your current settings.</p><div class="card" id="famc" style="margin-bottom:12px;display:none"><h3>One random family, year by year</h3>
+<p class="sm mu" style="margin:0 0 6px">Simulates a single family with your current settings and lists each year until the last descendant dies or the simulation ends. Enter a seed to repeat the same family, or leave it blank for a new one. Changing a setting regenerates the family with the same seed.</p>
+<div class="bar" style="margin-top:0"><span class="sm">Seed</span><input class="in" id="fs" type="number" placeholder="random" style="width:120px"><button class="p" id="fg">Generate this seed</button><button id="fn">New random family</button><select class="in" id="fb"><option value="real">Today's dollars</option><option value="nom">Nominal dollars</option></select></div>
+<div id="fk" class="kpis" style="margin-bottom:8px"></div><p class="sm" id="fe" style="margin:0 0 8px"></p>
+<div class="cards"><div class="card"><h3>Trust value, payouts and earnings</h3><div class="ch"><canvas id="c9"></canvas></div></div><div class="card"><h3>Living descendants by generation</h3><div class="ch"><canvas id="c10"></canvas></div></div></div>
+<div class="sc" style="max-height:480px;overflow:auto"><table id="ft"></table></div>
+<details style="margin-top:8px"><summary class="sm">Copy-ready text (tab-separated, paste into a spreadsheet)</summary><textarea id="fx" readonly rows="8" style="width:100%;font:12px monospace;margin-top:6px"></textarea></details>
+<details open style="margin-top:8px"><summary class="sm">Family tree: each bar is one person's lifetime, colored by generation (hover for details)</summary><div id="ftlg" class="sm" style="margin:6px 0"></div><div class="sc" id="ftree" style="max-height:520px;overflow:auto"></div></details>
+<details style="margin-top:8px"><summary class="sm">People in this family</summary><div class="sc" style="max-height:320px;overflow:auto"><table id="fp"></table></div></details></div>
+</section>
+<section class="tab" id="tab-tab" role="tabpanel" hidden>
+<div class="card" style="margin-bottom:12px"><h3>Key years</h3><p class="ex" style="margin:0 0 8px">Snapshots at selected years. The three trust columns are the 10th percentile (a poor outcome), the median (the middle outcome) and the 90th percentile (a strong outcome) across all simulations. Payout columns show what a typical member of each generation receives that year. All in today's dollars.</p><div class="sc"><table id="t1"></table></div></div>
+<div class="card"><h3>Lifetime per member, by generation (real $)</h3><div style="margin-bottom:6px"><select class="in" id="lm"><option value="done">Completed lives only</option><option value="sofar">So far, including people still alive at the end</option></select></div><p class="sm mu" style="margin:0 0 6px">Per-member columns describe individual people across all simulations. Member counts are divided by the number of simulations, so they are averages per simulation. The generation-total percentiles add up everything a generation receives within each simulation and rank only the simulations where that generation has at least one person counted, so the 10th percentile is a poor outcome for a generation that exists. The share of simulations where it has no one counted is shown separately: the family died out or never reached that generation, or (in Completed lives only) none of its members has died by the last simulated year. "Invested" = every payout invested like the trust until death. Completed lives counts only people whose lives end within the simulated years, which understates late generations. So far counts everyone born by the last year, using payouts received up to that point or up to death. Existing family members are counted from today.</p><p class="ex" id="x7" style="margin:0 0 8px"></p><div class="sc"><table id="t2"></table></div></div>
+</section>
+<p class="sm mu">&copy; 2026 Meeks. Released under the MIT License. See "About" below for terms of use.</p>
+<p class="sm mu">A modeling tool, not financial, tax or legal advice. Results are simulations under stated assumptions, not predictions. Trust, tax and perpetuity rules vary by state and change over time, so confirm any plan with an estate attorney and tax advisor.</p>
+<details class="card" id="about" style="margin-top:12px"><summary><b>About, method, limits and sources</b></summary>
+<div class="sm" style="margin-top:8px;line-height:1.55">
+<p><b>What it does.</b> It simulates an irrevocable trust that pays one annual distribution to all living descendants, with each person's share weighted by generation or age, and shows how the trust and each generation's payouts could turn out across thousands of simulated families and market histories.</p>
+<p><b>How it works.</b> Each simulation builds a random family (births, deaths and the number of descendants by generation) and runs the trust year by year. Investment returns are drawn at random each year (Monte Carlo), generated by a layered model whose returns change over time (Layered), held constant (Simple), or taken from real US history by picking a random start year and running forward in order (Historical). Payouts follow the rule you choose. Taxes are either a flat drag or a detailed estimate of trust-level tax on retained dividends and on gains from shares sold, with an optional beneficiary-level income tax. Percentiles show the 10th, 50th (median) and 90th percentile outcomes across simulations. All dollars are in today's dollars unless you switch to nominal in the single-family view.</p>
+<p><b>Layered return model.</b> Each simulation stacks four layers, all in real (after-inflation) terms. (1) Centuries: the simulation draws its own long-run return around the one you enter, optionally drifting by a set amount per century. (2) Decades: the expected return wanders around that long-run return in eras with a set half-life; when prices fall, expected future returns rise, so part of a fall is made up later (the &ldquo;recovery strength&rdquo; setting, following the predictive-system approach of Pástor and Stambaugh). (3) Years: markets switch between normal years and crisis years (about one year in five; crisis spells average about three years) with higher volatility and lower returns, plus optional slow shifts in volatility over decades. (4) Rare events: disasters cause permanent losses that are not made up afterward. Inflation varies from year to year and rises in crisis years. The long-run return you enter already allows for disaster losses, so the median compounded return stays close to it. With &ldquo;treat these settings as uncertain&rdquo; on, each simulation also draws its own era length, swing size, recovery strength and disaster chance, which approximates simulating from a Bayesian posterior. Defaults are starting assumptions; they will be replaced by values fitted to global historical data.</p>
+<p><b>Main limits.</b></p>
+<ul style="margin:0 0 8px 18px;padding:0">
+<li>The long-run average return is the biggest driver of results and cannot be known. Over 100 to 250 years a difference of a point or two changes outcomes by an order of magnitude. Use the conservative and optimistic setups and the uncertain-average-return option.</li>
+<li>In the Monte Carlo model yearly returns are independent of each other, while real markets show longer cycles. The Layered model adds eras, crises and disasters, but its settings are hand-set assumptions, not yet fitted to data.</li>
+<li>Taxes use flat rates you enter, not progressive brackets, and exclude state taxes. Spouses are not beneficiaries.</li>
+<li>Fertility and mortality are fixed assumptions and do not change over time.</li>
+<li>Some figures (payout medians, lifetime percentiles) are read from compact histograms and can differ from exact values by about 1%. Confidence ranges, when shown, reflect only the number of simulations.</li>
+<li>Defaults for returns, volatility, yields and tax rates are illustrative assumptions, not forecasts.</li></ul>
+<p><b>Sources.</b> Historical annual returns for the S&amp;P 500 (with dividends), 10-year US Treasury bonds and US inflation, 1928 to 2023, are from Aswath Damodaran, NYU Stern, <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histret.html" target="_blank" rel="noopener">Historical Returns on Stocks, Bonds and Bills</a>. The historical stock data is US-only, so it is likely optimistic for a global stock index.</p>
+<p><b>Privacy.</b> Everything runs in your browser. Your settings are not sent to or stored by any server. A share link puts your settings in the web address after the # sign, which browsers do not send to the site. The page loads the Chart.js charting library from the cdnjs content network, so your browser contacts that network when the page opens.<span id="anp"></span></p>
+<p><b>Terms of use.</b> This calculator is for general information and education only. It is not financial, investment, tax or legal advice, and using it does not create an advisory, attorney-client or other professional relationship. Results are hypothetical simulations based on assumptions that may not hold, and past performance does not predict future results. The tool is provided "as is" without warranties of any kind. To the fullest extent permitted by law, the author is not liable for any loss or decision arising from its use. Consult qualified professionals before acting.</p>
+<p><b>Copyright and license.</b> &copy; 2026 Meeks. The code is released under the MIT License, reproduced below. The Chart.js library, loaded from the cdnjs network, is licensed under the MIT License by its authors. Historical market data is credited to its source above.</p>
+<pre class="sm" style="white-space:pre-wrap;margin:0 0 8px;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">MIT License
+
+Copyright (c) 2026 Meeks
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</pre>
+<p><b>Version.</b> October 2026.</p></div></details>
+
+</main></div></div>
+<button class="p" id="fab" aria-controls="ctl">Settings</button><div class="scrim" id="scrim"></div>
+<div class="busy" id="busy" hidden role="status"><span class="sp"></span>Running simulation…</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+//SIM
+const SURV=(()=>{const s=[1];for(let a=0;a<=110;a++){const q=a==110?1:Math.min(1,.0002+.00003*Math.exp(.095*a));s.push(s[a]*(1-q))}return s})();
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function deathAge(r,a0){const tg=r()*SURV[a0];let a=a0+1;while(a<110&&SURV[a]>tg)a++;return a}
+function expKids(pe,q,wl,wh){let pb=0,s=0;for(let a=wl;a<=wh;a++){pb=q*(1-pb);s+=SURV[a]*pb}return pe*s}
+function calib(pe,k,wl,wh){let lo=0,hi=1;for(let i=0;i<40;i++){const m=(lo+hi)/2;expKids(pe,m,wl,wh)<k?lo=m:hi=m}return(lo+hi)/2}
+const GM=14;
+const NB=1000,HLO=0,HHI=9,hb=v=>v>0?Math.min(NB,Math.max(1,1+Math.floor((Math.log10(v)-HLO)/(HHI-HLO)*NB))):0,hn=h=>h.reduce((a,b)=>a+b,0),
+hq=(h,off,p,n)=>{const r=p*n;let c=0;for(let b=0;b<=NB;b++){c+=h[off+b];if(c>=r&&c>0)return b==0?0:Math.pow(10,HLO+(b-.5)*(HHI-HLO)/NB)}return 0},hps=h=>{const n=hn(h);return n>0?[hq(h,0,.1,n),hq(h,0,.5,n),hq(h,0,.9,n)]:[0,0,0]};
+const rci=(a,p)=>{const n=a.length;if(n<5)return[NaN,NaN];const se=Math.sqrt(n*p*(1-p));return[a[Math.max(0,Math.floor(n*p-1.96*se))],a[Math.min(n-1,Math.ceil(n*p+1.96*se))]]};
+const wil=(k,n)=>{if(!n)return[0,0];const z=1.96,ph=k/n,d=1+z*z/n,c=ph+z*z/(2*n),m=z*Math.sqrt(ph*(1-ph)/n+z*z/(4*n*n));return[Math.max(0,(c-m)/d),Math.min(1,(c+m)/d)]};
+const YT=(v,i,a)=>{const n=a.length,st=n>150?50:n>60?25:10,y=i+1;return(y==1||y%st==0)?y:null};
+const pc=(a,p)=>a[Math.min(a.length-1,Math.floor(p*a.length))];
+// S&P 500 total return (%) and CPI inflation (%), 1928-2023. Source: Damodaran, NYU Stern (histret)
+const HN=[43.81,-8.30,-25.12,-43.84,-8.64,49.98,-1.19,46.74,31.94,-35.34,29.28,-1.10,-10.67,-12.77,19.17,25.06,19.03,35.82,-8.43,5.20,5.70,18.30,30.81,23.68,18.15,-1.21,52.56,32.60,7.44,-10.46,43.72,12.06,0.34,26.64,-8.81,22.61,16.42,12.40,-9.97,23.80,10.81,-8.24,3.56,14.22,18.76,-14.31,-25.90,37.00,23.83,-6.98,6.51,18.52,31.74,-4.70,20.42,22.34,6.15,31.24,18.49,5.81,16.54,31.48,-3.06,30.23,7.49,9.97,1.33,37.20,22.68,33.10,28.34,20.89,-9.03,-11.85,-21.97,28.36,10.74,4.83,15.61,5.48,-36.55,25.94,14.82,2.10,15.89,32.15,13.52,1.38,11.77,21.61,-4.23,31.21,18.02,28.47,-18.04,26.06],HI=[-1.16,0.58,-6.40,-9.32,-10.27,0.76,1.52,2.99,1.45,2.86,-2.78,0.00,0.71,9.93,9.03,2.96,2.30,2.25,18.13,8.84,2.73,-1.83,5.80,5.96,0.91,0.60,-0.37,0.37,2.83,3.04,1.76,1.52,1.36,0.67,1.23,1.65,1.20,1.92,3.36,3.28,4.71,5.90,5.57,3.27,3.41,8.94,12.10,7.13,5.04,6.68,8.99,13.25,12.35,8.91,3.83,3.79,4.04,3.79,1.19,4.33,4.41,4.64,6.25,2.98,2.97,2.81,2.60,2.53,3.38,1.70,1.61,2.68,3.44,1.60,2.48,2.04,3.34,3.34,2.52,4.11,-0.02,2.81,1.44,3.06,1.76,1.51,0.65,0.64,2.05,2.13,2.00,2.31,1.32,7.19,6.44,3.12],HB=[0.84,4.20,4.54,-2.56,8.79,1.86,7.96,4.47,5.02,1.38,4.21,4.41,5.40,-2.02,2.29,2.49,2.58,3.80,3.13,0.92,1.95,4.66,0.43,-0.30,2.27,4.14,3.29,-1.34,-2.26,6.80,-2.10,-2.65,11.64,2.06,5.69,1.68,3.73,0.72,2.91,-1.58,3.27,-5.01,16.75,9.79,2.82,3.66,1.99,3.61,15.98,1.29,-0.78,0.67,-2.99,8.20,32.81,3.20,13.73,25.71,24.28,-4.96,8.22,17.69,6.24,15.00,9.36,14.21,-8.04,23.48,1.43,9.94,14.92,-8.25,16.66,5.57,15.12,0.38,4.49,2.87,1.96,10.21,20.10,-11.12,8.46,16.04,2.97,-9.10,10.75,1.28,0.69,2.80,-0.02,9.64,11.33,-4.42,-17.83,3.88],HIST=HN.map((n,i)=>[n,HI[i]]);
+function sim(P){
+const H=P.H,N=P.N,G=GM,rnd=rng(P.seed||12345),gauss=()=>Math.sqrt(-2*Math.log(1-rnd()))*Math.cos(2*Math.PI*rnd());
+const vol=P.vol/100,infl=P.infl/100,gn=P.rtype=="real"?(1+P.ret/100)*(1+infl)-1:P.ret/100;
+const m=gn+vol*vol/2,s2=Math.log(1+(vol/(1+m))**2),mu=Math.log(1+m)-s2/2,sg=Math.sqrt(s2);
+const bn=P.rtype=="real"?(1+P.br/100)*(1+infl)-1:P.br/100,bvl=P.bv/100,rh=P.rho,rr=Math.sqrt(1-rh*rh),bm=bn+bvl*bvl/2,s2b=Math.log(1+(bvl/(1+bm))**2),mub=Math.log(1+bm)-s2b/2,sgb=Math.sqrt(s2b);
+const pe=P.pe/100,wl=Math.max(15,Math.round(P.bage-7.5)),wh=wl+15,cap=P.cap>0?P.cap:1e9,q=calib(pe,P.kids,wl,wh),ratio=P.ratio/100,fee=P.fee/100,fx=P.fx,fl=P.fl,fc=P.fc,wS=P.sw/100,dy=wS*P.dy/100+(1-wS)*P.by/100,gf=P.gf/100*wS,tr=P.tr/100,tq=dy>0?wS*P.dy/100*P.qs/100/dy:P.qs/100,tro=P.tro/100,tx=P.tx/100,fwE=wS*P.fw/100,rate=P.dist/100,F0=P.fund*1e6;
+const LAY=P.mode=="lay",lm0=Math.log(1+(P.rtype=="real"?P.ret/100:(1+P.ret/100)/(1+infl)-1)),lvn=P.lvn/100,lvc=P.lvc/100,ldl=P.ldl/100,lEL=(()=>{const r2=rng(777);let t=0;for(let k=0;k<4000;k++){const z=Math.sqrt(-2*Math.log(1-r2()))*Math.cos(2*Math.PI*r2());t-=Math.log(1-Math.min(.95,ldl*Math.exp(.4*z-.08)))}return t/4000})();
+const AGE=P.wmode=="age",mwv=P.mw/100,swv=P.senw/100,WT=Array.from({length:60},(_,g)=>Math.max(ratio**(g-1),P.wmin/100)),wAt=(g,by,t)=>{if(!AGE)return WT[g];const a=t-by;return a<18?mwv:a<65?1:swv},
+segs=(g,by,b,f)=>{if(!AGE)return[[b,f,WT[g]]];const out=[];let s=b;for(const[lim,w]of[[by+18,mwv],[by+65,1],[1e9,swv]]){if(s>=f)break;const e=Math.min(f,Math.max(lim,s));if(e>s){out.push([s,e,w]);s=e}}return out};
+const bq=P.bq/100,bo=P.bo/100,bl=P.btx?tq*bq+(1-tq)*bo:0,aft=pr=>bl>0&&pr>0?1-Math.min(1,dy/pr)*bl:1;
+const pots=new Float32Array(N*H),hc=new Float32Array(N*H),payH=[...Array(GM)].map(()=>null),payT=[...Array(GM)].map(()=>null),addP=(HH,TT,gi,t,v)=>{if(!HH[gi]){HH[gi]=new Uint16Array(H*(NB+1));TT[gi]=new Uint16Array(H)}HH[gi][t*(NB+1)+hb(v)]++;TT[gi][t]++};
+const mkH=()=>[...Array(G+1)].map(()=>new Uint32Array(NB+1)),lr=mkH(),li=mkH(),sr=Array(G+1).fill(0),si=Array(G+1).fill(0),lrs=mkH(),lis=mkH(),srs=Array(G+1).fill(0),sis=Array(G+1).fill(0),gtA=()=>[...Array(G+1)].map(()=>new Float64Array(N)),gtR=gtA(),gtI=gtA(),gtRS=gtA(),gtIS=gtA(),gtN=gtA(),gtNS=gtA(),gq=(v,n)=>{const a=[];for(let k=0;k<N;k++)if(n[k]>0)a.push(v[k]);return a.length?ps(a):null},gz=n=>{let z=0;for(let k=0;k<N;k++)if(!(n[k]>0))z++;return z/N},cs=[...Array(GM)].map(()=>new Float64Array(H));let ext=0,dsum=0;const alive=new Float64Array(H),totA=[];const CM=!!P.cmp,KY=[25,50,100,150,200,250,300].filter(y=>y<=H),poolP={},poolB={},poolC={},shC=new Float64Array(H),recC=mkH(),endCs=[],shP=new Float64Array(H),shB=new Float64Array(H),shN=new Float64Array(H),payH2=[...Array(GM)].map(()=>null),payT2=[...Array(GM)].map(()=>null),recB=mkH(),vEnd=[];KY.forEach(y=>{poolP[y]=new Uint32Array(NB+1);poolB[y]=new Uint32Array(NB+1);poolC[y]=new Uint32Array(NB+1)});
+const OD=P.one?{pay:[...Array(GM)].map(()=>new Float32Array(H).fill(NaN)),v0:new Float64Array(H),D:new Float64Array(H),earn:new Float64Array(H),fee:new Float64Array(H),tax:new Float64Array(H),v1:new Float64Array(H),gr:new Float64Array(H),dfl:new Float64Array(H),bt:new Float64Array(H)}:null;const pa=x=>String(x||'').split(/[\s,;]+/).filter(v=>v!=='').map(Number).filter(v=>isFinite(v)&&v>=0&&v<100).slice(0,20);let AG1=pa(P.a1),AG2=pa(P.a2);if(!AG1.length&&!AG2.length)AG1=[10,10];
+for(let i=0;i<N;i++){
+const gs=[],bs=[],ds=[],pi=[],st=[];for(const a of AG1)st.push([1,-a,a,-1]);for(const a of AG2)st.push([2,-a,a,-2]);
+while(st.length){const[g,by,a0,pp]=st.pop(),da=deathAge(rnd,a0);gs.push(g);bs.push(by);ds.push(by+da);pi.push(pp);const me=gs.length-1;
+if(rnd()<pe){let last=-9,c=0;for(let a=Math.max(wl,a0);a<=Math.min(wh,da-1)&&c<6;a++){if(a-last<2)continue;if(rnd()<q){last=a;c++;const cy=by+a;if(cy>=0&&cy<H)st.push([g+1,cy,0,me])}}}}
+const gwd=AGE?[...Array(GM+1)].map(()=>new Float64Array(H+2)):null,ld=P.one?[...Array(GM+1)].map(()=>new Float64Array(H+2)):null,wd=new Float64Array(H+2),td=new Float64Array(H+2),ed=new Float64Array(H+2),cd=[...Array(GM+1)].map(()=>new Float64Array(H+2));
+for(let j=0;j<gs.length;j++){const g=gs[j],b=Math.max(bs[j],0),e=Math.min(ds[j],H+1),f=Math.min(e,bs[j]+cap);
+if(e>b){td[b]++;td[e]--;if(ld&&g<=GM){ld[g][b]++;ld[g][e]--}}
+if(f>b){for(const[s0,s1,w]of segs(g,bs[j],b,f)){wd[s0]+=w;wd[s1]-=w;if(AGE&&g<=GM){gwd[g][s0]+=w;gwd[g][s1]-=w}}ed[b]++;ed[f]--;if(g<=GM){cd[g][b]++;cd[g][f]--}}}
+const tw=new Float64Array(H),cn=[...Array(GM+1)].map(()=>new Float64Array(H));let a1=0,a2=0,a3=0;const gws=AGE?[...Array(GM+1)].map(()=>new Float64Array(H)):null,gwa=Array(GM+1).fill(0),ca=Array(GM+1).fill(0),ec=new Float64Array(H),lcn=P.one?[...Array(GM+1)].map(()=>new Float64Array(H)):null,la=Array(GM+1).fill(0);
+for(let t=0;t<H;t++){a1+=wd[t];tw[t]=a1;a2+=td[t];hc[i*H+t]=a2;a3+=ed[t];ec[t]=a3;if(lcn)for(let g=1;g<=GM;g++){la[g]+=ld[g][t];lcn[g][t]=la[g]}for(let g=1;g<=GM;g++){ca[g]+=cd[g][t];cn[g][t]=ca[g];if(AGE){gwa[g]+=gwd[g][t];gws[g][t]=gwa[g]}}}
+if(hc[i*H+H-1]<=0)ext++;
+let exT=H;for(let t=0;t<H;t++)if(hc[i*H+t]<=0){exT=t;break}
+const eT=P.cens&&!P.one?exT:H;for(let t=0;t<eT;t++){alive[t]++;for(let g=1;g<=GM;g++)cs[g-1][t]+=cn[g][t]}
+const ia=new Float64Array(H),gr=new Float64Array(H),dfl=new Float64Array(H);let cp=1,hp=-1;
+const gp=P.runc&&P.mode!="hist"&&!LAY?Math.max(gn+P.rsd/100*gauss(),-.05):gn;let mu2=mu,sg2=sg;if(gp!==gn){const m2=gp+vol*vol/2,s22=Math.log(1+(vol/(1+m2))**2);mu2=Math.log(1+m2)-s22/2;sg2=Math.sqrt(s22)}if(OD)OD.gp=gp;
+if(LAY){// Layered model: per-path long-run anchor, wandering expected return linked to price moves, crisis regime, slow volatility, disasters, stochastic inflation (all real log returns)
+const U=P.lunc,hl=U?P.lhl*Math.exp(2*rnd()-1):P.lhl,sd=P.ldr/100*(U?Math.exp(.4*gauss()):1),rc=U?Math.min(.95,Math.max(0,P.lrc+.5*(rnd()-.5))):P.lrc,dp=P.ldp/100*(U?Math.exp(1.4*(rnd()-.5)):1),
+be=Math.pow(.5,1/hl),sw2=sd*Math.sqrt(1-be*be),rq=Math.sqrt(1-rc*rc),anc=lm0+P.lsd/100*gauss()+dp*lEL,ltd=P.ltr/1e4;
+let dv=sd*gauss(),cr=rnd()<.186,lv=P.lslow?.25*gauss():0,ip=infl;if(OD)OD.gp=(Math.exp(anc-dp*lEL)*(1+infl))-1;
+for(let t=0;t<H;t++){const z=gauss(),sg3=(cr?lvc:lvn)*Math.exp(lv);let r=anc+ltd*t+dv+(cr?-.03:.0065)+sg3*z;
+if(dp>0&&rnd()<dp)r+=Math.log(1-Math.min(.95,ldl*Math.exp(.4*gauss()-.08)));
+const ii=Math.max(-.08,infl+.6*(ip-infl)+.012*gauss()+(cr?.01:0));ip=ii;ia[t]=ii;const sx=Math.exp(r)*(1+ii);
+gr[t]=wS>=1?sx:wS*sx+(1-wS)*Math.exp(mub+(ii-infl)+sgb*(rh*z+rr*gauss()));
+dv=be*dv+sw2*(-rc*z+rq*gauss());cr=cr?rnd()>.35:rnd()<.08;if(P.lslow)lv=.94*lv+.25*.3412*gauss();cp*=1+ia[t];dfl[t]=cp}}
+else for(let t=0;t<H;t++){if(P.mode=="hist"){if(hp<0||hp>=HIST.length)hp=Math.floor(rnd()*HIST.length);const h=HIST[hp],bh=HB[hp];hp++;gr[t]=wS*(1+h[0]/100)+(1-wS)*(1+bh/100);ia[t]=h[1]/100}else{ia[t]=infl;if(P.mode=="simple")gr[t]=wS*(1+gp)+(1-wS)*(1+bn);else{const z1=gauss(),sx=Math.exp(mu2+sg2*z1);gr[t]=wS>=1?sx:wS*sx+(1-wS)*Math.exp(mub+sgb*(rh*z1+rr*gauss()))}}cp*=1+ia[t];dfl[t]=cp}
+let pot=F0;const D=new Float64Array(H),nf=new Float64Array(H),win=[F0],AF=new Float64Array(H);
+for(let t=0;t<H;t++){
+let dx=rate*pot;if(P.dmode=="fixed")dx=fx*dfl[t];else if(P.dmode=="band")dx=Math.min(Math.max(rate*pot,fl*dfl[t]),fc*dfl[t]);else if(P.dmode=="smooth"){const n=Math.min(win.length,Math.max(1,Math.round(P.sy)));dx=rate*win.slice(-n).reduce((x,y)=>x+y)/n}
+D[t]=tw[t]>0?Math.min(dx,pot):0;
+const pr=pot>0?D[t]/pot:0,dg=P.taxm=="simple"?tx:Math.max(dy-pr,0)*(tq*tr+(1-tq)*tro)+Math.max(pr-dy,0)*gf*tr+fwE;dsum+=dg;AF[t]=aft(pr);nf[t]=Math.max(gr[t]-fee-dg,0);
+if(OD){const a=pot-D[t];OD.v0[t]=pot;OD.D[t]=D[t];OD.earn[t]=a*(gr[t]-1);OD.fee[t]=a*fee;OD.tax[t]=a*dg;OD.v1[t]=a*nf[t];OD.gr[t]=gr[t]-1;OD.dfl[t]=dfl[t];OD.bt[t]=D[t]*(1-AF[t])}
+pot=(pot-D[t])*nf[t];win.push(pot);pots[i*H+t]=pot/dfl[t];
+for(let g=1;g<=GM;g++)if(cn[g][t]>0&&tw[t]>0){const v=D[t]*(AGE?gws[g][t]/cn[g][t]:WT[g])/tw[t]/dfl[t]*AF[t];addP(payH,payT,g-1,t,v);if(OD)OD.pay[g-1][t]=v}}
+{let tp=0;for(let t=0;t<H;t++)tp+=D[t]/dfl[t]*AF[t];if(!P.cens||P.one||hc[i*H+H-1]>0)totA.push(tp)}
+if(OD){OD.living=Array.from(hc.slice(0,H));OD.ec=Array.from(ec);OD.lcn=lcn.map(a=>Array.from(a));OD.people=gs.map((g,j)=>[j+1,g,bs[j],ds[j],pi[j]>=0?pi[j]+1:0])}
+if(P.cens&&!P.one)for(let t=exT;t<H;t++){pots[i*H+t]=NaN;hc[i*H+t]=NaN}
+const I=new Float64Array(H+1),R=new Float64Array(H+1),S=new Float64Array(H+1);I[0]=1;
+for(let t=0;t<H;t++){const r=tw[t]>0?D[t]/tw[t]/dfl[t]*AF[t]:0;I[t+1]=I[t]*nf[t]/(1+ia[t]);R[t+1]=R[t]+r;S[t+1]=S[t]+r/I[t]}
+const acc=(g,by,b,f,eI)=>{let x=0,y=0;for(const[s0,s1,w]of segs(g,by,b,f)){x+=w*(R[s1]-R[s0]);y+=w*I[eI]*(S[s1]-S[s0])}return[x,y]};
+for(let j=0;j<gs.length;j++){const g=gs[j],b=Math.max(bs[j],0),d=ds[j];if(g>G)continue;const e2=Math.min(d,H);
+if(e2>b){const f2=Math.max(b,Math.min(e2,bs[j]+cap)),[x2,y2]=acc(g,bs[j],b,f2,e2);lrs[g][hb(x2)]++;lis[g][hb(y2)]++;srs[g]+=x2;sis[g]+=y2;gtRS[g][i]+=x2;gtIS[g][i]+=y2;gtNS[g][i]++}
+if(d>H||d<=b)continue;const f=Math.max(b,Math.min(d,bs[j]+cap)),[x,y]=acc(g,bs[j],b,f,d);lr[g][hb(x)]++;li[g][hb(y)]++;sr[g]+=x;si[g]+=y;gtR[g][i]+=x;gtI[g][i]+=y;gtN[g][i]++}
+if(CM){
+const n=gs.length,val=new Float64Array(n),pj=new Float64Array(n),rc=new Float64Array(n),act=new Set(),ch=[...Array(n)].map(()=>[]);
+const S1=[],S2=[];for(let j=0;j<n;j++){if(pi[j]==-1)S1.push(j);else if(pi[j]==-2)S2.push(j)}
+S2.forEach((j,k)=>{pi[j]=S1.length?S1[k%S1.length]:-3});
+for(let j=0;j<n;j++)if(pi[j]>=0)ch[pi[j]].push(j);
+const st0=S1.length?S1:S2;st0.forEach(j=>{val[j]=F0/st0.length;act.add(j)});
+const bd={};for(let j=0;j<n;j++){const d=ds[j];if(d>=0&&d<H)(bd[d]=bd[d]||[]).push(j)}
+const dist=(j,t)=>{const parts=[];for(const c of ch[j]){if(bs[c]>t)continue;if(ds[c]>t)parts.push([[c,1]]);else{const sub=dist(c,t);if(sub.length)parts.push(sub)}}
+const out=[];for(const p of parts)for(const[k,w]of p)out.push([k,w/parts.length]);return out};
+for(let t=0;t<H;t++){
+if(bd[t])for(const j of bd[t]){if(!act.has(j))continue;const v=val[j];val[j]=0;act.delete(j);if(v<=0)continue;
+const hs=dist(j,t);
+if(hs.length){for(const[c,w]of hs){val[c]+=v*w;act.add(c)}}else if(act.size){const sh=v/act.size;for(const k of act)val[k]+=sh}}
+let V=0,Dt=0;for(const j of act){V+=val[j];pj[j]=t<bs[j]+cap?rate*val[j]:0;Dt+=pj[j]}
+const pr=V>0?Dt/V:0,dg=P.taxm=="simple"?tx:Math.max(dy-pr,0)*(tq*tr+(1-tq)*tro)+Math.max(pr-dy,0)*gf*tr+fwE,nfb=Math.max(gr[t]-fee-dg,0),afb=aft(pr);
+const gsum=Array(GM+1).fill(0),gc=Array(GM+1).fill(0),iy=KY.indexOf(t+1)>=0;let nr=0;
+for(const j of act){const p=pj[j]/dfl[t]*afb;if(pj[j]>0){nr++;rc[j]+=p;const g=gs[j];if(g<=GM){gsum[g]+=p;gc[g]++}if(iy)poolB[t+1][hb(p)]++}val[j]=(val[j]-pj[j])*nfb}
+for(let g=1;g<=GM;g++)if(gc[g])addP(payH2,payT2,g-1,t,gsum[g]/gc[g]);
+const lv=hc[i*H+t];if(lv>0){shB[t]+=nr/lv;shP[t]+=ec[t]/lv;shN[t]++}
+if(iy&&tw[t]>0){const u=D[t]/tw[t]/dfl[t]*AF[t];for(let j=0;j<n;j++)if(bs[j]<=t&&t<Math.min(ds[j],H+1)&&t<bs[j]+cap)poolP[t+1][hb(u*wAt(gs[j],bs[j],t))]++}}
+for(let j=0;j<n;j++){const g=gs[j];if(g<=G&&Math.min(ds[j],H)>Math.max(bs[j],0))recB[g][hb(rc[j])]++}
+const valC=new Float64Array(n),pjC=new Float64Array(n),rcC=new Float64Array(n),lump=new Float64Array(n),actC=new Set();
+st0.forEach(j=>{valC[j]=F0/st0.length;actC.add(j)});let endC=H+1;
+for(let t=0;t<H;t++){
+if(bd[t])for(const j of bd[t]){if(!actC.has(j))continue;const v=valC[j];valC[j]=0;actC.delete(j);if(v<=0)continue;
+const hs=dist(j,t);
+if(hs.length){for(const[c,w]of hs)lump[c]+=v*w/dfl[t]}else if(actC.size){const sh=v/actC.size;for(const k of actC)valC[k]+=sh}}
+if(!actC.size){endC=t;break}
+let V=0,Dt=0;for(const j of actC){V+=valC[j];pjC[j]=t<bs[j]+cap?rate*valC[j]:0;Dt+=pjC[j]}
+const pr=V>0?Dt/V:0,dg=P.taxm=="simple"?tx:Math.max(dy-pr,0)*(tq*tr+(1-tq)*tro)+Math.max(pr-dy,0)*gf*tr+fwE,nfc=Math.max(gr[t]-fee-dg,0),afc=aft(pr),iy=KY.indexOf(t+1)>=0;let nr=0;
+for(const j of actC){if(pjC[j]>0){nr++;const p=pjC[j]/dfl[t]*afc;rcC[j]+=p;if(iy)poolC[t+1][hb(p)]++}valC[j]=(valC[j]-pjC[j])*nfc}
+const lv=hc[i*H+t];if(lv>0)shC[t]+=nr/lv}
+endCs.push(endC);
+for(let j=0;j<n;j++){const g=gs[j];if(g<=G&&Math.min(ds[j],H)>Math.max(bs[j],0))recC[g][hb(rcC[j]+lump[j])]++}
+let vf=0;for(const j of act)vf+=val[j];vEnd.push(vf/dfl[H-1])}}
+const col=(A,t)=>{const a=[];for(let i=0;i<N;i++){const v=A[i*H+t];if(v==v)a.push(v)}return Float32Array.from(a).sort()};
+const band=(A,wc)=>{const o=[[],[],[]],cc=wc?[[[],[]],[[],[]],[[],[]]]:null;for(let t=0;t<H;t++){const c=col(A,t);[.1,.5,.9].forEach((p,k)=>{o[k].push(pc(c,p));if(cc){const[lo,hi]=rci(c,p);cc[k][0].push(lo);cc[k][1].push(hi)}})}if(cc)o.ci=cc;return o};
+const ps=a=>{const s=Float64Array.from(a).sort();return[pc(s,.1),pc(s,.5),pc(s,.9)]};
+const life=[];for(let g=1;g<=G;g++)if(hn(lr[g])>=20)life.push({g,nps:hn(lr[g])/N,rec:hps(lr[g]),inv:hps(li[g]),sr:sr[g]/N,si:si[g]/N,tr:gq(gtR[g],gtN[g]),ti:gq(gtI[g],gtN[g]),z:gz(gtN[g])});
+const lifeS=[];for(let g=1;g<=G;g++)if(hn(lrs[g])>=20)lifeS.push({g,nps:hn(lrs[g])/N,rec:hps(lrs[g]),inv:hps(lis[g]),sr:srs[g]/N,si:sis[g]/N,tr:gq(gtRS[g],gtNS[g]),ti:gq(gtIS[g],gtNS[g]),z:gz(gtNS[g])});
+const fin=col(pots,H-1),y50=Math.min(50,H)-1,kb={fin:fin.length?pc(fin,.5):0,low:fin.length?fin.filter(v=>v<.25*F0).length/fin.length:0,ext:ext/N,rec:life[0]?life[0].rec[1]:0,y50:y50+1,drag:dsum/(N*H)};
+if(P.ci)kb.ci={fin:fin.length?rci(fin,.5):[NaN,NaN],low:wil(fin.filter(v=>v<.25*F0).length,fin.length),ext:wil(ext,N)};
+if(P.lite)return{kpi:{...kb,p50:0}};
+const trust=band(pots,P.ci),heads=band(hc),minN=Math.max(20,.05*N);
+const medH=(HH,TT)=>HH.map((h,g)=>{const o=[];for(let t=0;t<H;t++){const n=h?TT[g][t]:0;o.push(n>=minN?hq(h,t*(NB+1),.5,n):null)}return o});
+const med=medH(payH,payT);
+kb.p50=med[0][y50]||0;
+let cmpOut=null;if(CM){const pctl=a=>{const s=Float64Array.from(a).sort();return s.length?[pc(s,.1),pc(s,.5),pc(s,.9)]:[0,0,0]},mdn=a=>pc(Float64Array.from(a).sort(),.5);
+cmpOut={medB:medH(payH2,payT2),shP:Array.from(shP,(v,t)=>shN[t]?v/shN[t]:null),shB:Array.from(shB,(v,t)=>shN[t]?v/shN[t]:null),
+pool:KY.map(y=>({y,np:hn(poolP[y])/N,nb:hn(poolB[y])/N,nc:hn(poolC[y])/N,p:hps(poolP[y]),b:hps(poolB[y]),c:hps(poolC[y])})),
+life:lifeS.filter(l=>hn(recB[l.g])>=20).map(l=>{const nB=hn(recB[l.g]),nC=hn(recC[l.g]);return{g:l.g,nps:nB/N,pot:l.rec[1],alt:hq(recB[l.g],0,.5,nB),zero:recB[l.g][0]/nB,outr:hq(recC[l.g],0,.5,nC),zeroO:nC?recC[l.g][0]/nC:0}}),fin:mdn(vEnd),shC:Array.from(shC,(v,t)=>shN[t]?v/shN[t]:null),endMed:mdn(endCs),endFrac:endCs.filter(v=>v<=H).length/N}}
+return{P:{...P},q,trust,heads,med,life,lifeS,payH,payT,N,H,cmp:cmpOut,one:OD,tot:totA.length?ps(totA):[0,0,0],kpi:kb,cavg:cs.map(a=>Array.from(a,(v,t)=>alive[t]?v/alive[t]:0))}}
+//ENDSIM
+const $=id=>document.getElementById(id);
+try{Chart.defaults.font.family="'Source Sans 3',system-ui,sans-serif";Chart.defaults.font.size=11.5}catch(e){}
+const DEF={fund:10,dist:1.5,ret:6.5,vol:15.5,fee:.5,dy:1.8,qs:85,gf:70,tr:23.8,tro:40.8,tx:.1,fw:.05,infl:2.5,a1:"10, 10",a2:"",dmode:"pct",fx:150000,fl:100000,fc:400000,sy:5,pe:80,kids:1.8,ratio:50,H:250,N:1000,cmp:false,cens:true,ci:false,wmode:"gen",wmin:0,mw:50,senw:100,runc:false,rsd:1.5,sw:100,br:4,bv:6,rho:.1,by:4,btx:false,bq:15,bo:24,mode:"mc",rtype:"nom",bage:32.5,cap:0,taxm:"complex",lsd:1.2,ltr:0,ldr:1.5,lhl:14,lrc:.7,lvn:14,lvc:28,ldp:1.5,ldl:30,lslow:true,lunc:true};
+const CFG=[["Trust"],["fund","Initial funding","$M",1,1000,1],["@dmode"],["dist","Distribution rate (% of trust value at the start of each year)","%",.1,10,.1],["fx","Fixed payout per year, in today's dollars","$",0,10000000,1000],["fl","Payout floor per year, in today's dollars","$",0,10000000,1000],["fc","Payout cap per year, in today's dollars","$",0,50000000,1000],["sy","Years of value to average","",1,20,1],["cap","Payouts to each person stop at age (0 = never)","",0,110,1],
+["Investments"],["@mode"],["@rtype"],["ret","Global stock index return, compounded","%",-5,20,.25],["vol","Global stock index volatility (Monte Carlo only)","%",0,40,.5],["sw","Global stock index as a share of the portfolio (the rest is bonds, rebalanced yearly)","%",0,100,5],["br","Bond return, compounded","%",-2,12,.25],["bv","Bond volatility (Monte Carlo only)","%",0,20,.5],["rho","Stock-bond correlation (Monte Carlo only)","",-.5,1,.05],["by","Bond interest yield (taxed as non-qualified income)","%",0,10,.1],["infl","Inflation","%",0,15,.25],["@runc"],["rsd","Uncertainty in the average return (one standard deviation)","pts",0,5,.1],["@lhd"],["lsd","Uncertainty in each simulation's long-run return (one standard deviation)","pts",0,4,.1],["ltr","Change in the long-run return per century (negative = slow decline)","pts",-4,2,.25],["ldr","How far the expected return swings between eras (one standard deviation)","pts",0,5,.1],["lhl","How long eras last (half-life)","years",2,80,1],["lrc","How strongly prices recover after a fall (0 = no link, 0.95 = strong)","",0,.95,.05],["lvn","Volatility in normal years","%",5,40,.5],["lvc","Volatility in crisis years","%",10,80,1],["ldp","Chance of a disaster in any year (war, expropriation, hyperinflation)","%",0,10,.1],["ldl","Average permanent loss in a disaster","%",5,90,1],["@lslow"],["@lunc"],["@rinfo"],
+["Taxes and costs"],["fee","Fees and trustee costs","%",0,5,.05],["@taxm"],["tx","Flat tax drag (simple method)","%",0,3,.05],["dy","Dividend yield of the global stock index","%",0,6,.1],["qs","Share of dividends that are qualified","%",0,100,5],["gf","Share of any shares sold that is taxable gain","%",0,100,5],["tr","Trust tax rate on retained qualified dividends and gains","%",0,50,.1],["tro","Trust tax rate on retained non-qualified dividends","%",0,60,.1],["fw","Unrecovered foreign tax withholding (% of the global stock index per year)","%",0,1,.01],["@btx"],["bq","Beneficiary tax rate on qualified dividends","%",0,50,.1],["bo","Beneficiary tax rate on non-qualified dividends","%",0,60,.1],
+["Family"],["@a1"],["@a2"],["pe","Share who ever have children","%",0,100,5],["kids","Average children per descendant","",.3,3.5,.1],["bage","Average age when children are born (spread over 16 years)","",22,45,.5],["@wmode"],["ratio","Share per person vs the generation before","%",10,100,5],["wmin","Minimum share vs generation 1 (floor; 0 = none)","%",0,100,5],["mw","Share for minors under 18, vs an adult","%",0,100,5],["senw","Share for people 65 and older, vs an adult","%",0,200,5],["@rh"],
+["Simulation"],["@cens"],["@ci"],["H","Years simulated","",10,300,10],["N","Simulated paths","",100,5000,100]];
+const MODES=[["mc","Monte Carlo","random return each year, around your average and volatility"],["lay","Layered","returns that change over time: an uncertain long-run return, eras of better and worse returns, calm and crisis years, slow shifts in volatility, and rare disasters"],["simple","Simple","your return, the same every year, no randomness"],["hist","Historical","start at a random year of US S&P 500 data (1928-2023) and run forward in order; when the data ends, jump to a new random start"]];
+const TAXM=[["simple","Simple","a flat percentage of the trust's value every year"],["complex","Detailed","depends on the payout and dividend yield: retained dividends and gains on shares sold are taxed in the trust"]];
+const DMODES=[["pct","Percent of value","the rate times the trust's value at the start of each year"],["fixed","Fixed dollars","the same inflation-adjusted dollar amount every year (the rate is ignored)"],["band","Percent with floor and cap","the percentage rule, but never below the floor or above the cap"],["smooth","Smoothed percent","the rate times the average value over the last several years"]];
+const WMODES=[["gen","Generation","each person's share depends on how many generations they are from you (ratio and floor below)"],["age","Age","adults get a full share; minors and people 65 and older get the percentages below, whatever their generation"]];
+const RTS=[["nom","Nominal","before inflation"],["real","Real","after inflation"]];
+const LK=["lsd","ltr","ldr","lhl","lrc","lvn","lvc","ldp","ldl","lslow","lunc"];
+const P={...DEF};let T,last,base,ch={};
+const nz=v=>v==v&&v!=null?Math.round(v):"-";
+const f$=v=>v==null||v!==v?"-":v>=1e9?"$"+(v/1e9).toFixed(2)+"B":v>=1e6?"$"+(v/1e6).toFixed(1)+"M":v>=1e3?"$"+(v/1e3).toFixed(0)+"K":"$"+Math.round(v);
+const dTxt=p=>p.dmode=="fixed"?f$(p.fx)+" a year (real)":p.dmode=="band"?p.dist+"% of value, floor "+f$(p.fl)+", cap "+f$(p.fc)+" (real)":p.dmode=="smooth"?p.dist+"% of the "+p.sy+"-year average value":p.dist+"% of value";
+const pt=v=>(v*100).toFixed(1)+"%",p2=v=>(v*100).toFixed(2)+"%";
+const rad=(n,t,o)=>`<div class="f blk"><div>${t}</div><div class="rg">${o.map(x=>`<label><input type="radio" name="${n}" value="${x[0]}"${P[n]==x[0]?" checked":""}> <b>${x[1]}</b>: ${x[2]}</label>`).join("")}</div></div>`;
+function build(){$("ctl").innerHTML="<details hidden><summary></summary><div>"+CFG.map(c=>c[0]=="@mode"?rad("mode","Return model",MODES):c[0]=="@rtype"?rad("rtype","The return I enter is",RTS):c[0]=="@dmode"?rad("dmode","Distribution rule",DMODES):c[0]=="@runc"?'<div class="f blk"><label><input type="checkbox" id="i_runc"> Treat the long-run average return as uncertain (each simulation draws its own average)</label></div>':c[0]=="@btx"?'<div class="f blk"><label><input type="checkbox" id="i_btx"> Subtract beneficiary income tax from all payouts (dividends paid out are taxed to the person who receives them)</label></div>':c[0]=="@wmode"?rad("wmode","Weight each person's share by",WMODES):c[0]=="@ci"?'<div class="f blk"><label><input type="checkbox" id="i_ci"> Show confidence ranges (95% margin of error from the number of simulations)</label></div>':c[0]=="@cens"?'<div class="f blk"><label><input type="checkbox" id="i_cens"> Leave out trusts whose family has died out, from the year it dies out</label></div>':c[0]=="@a1"?'<div class="f blk" id="f_a1"><label for="i_a1">Children (generation 1): ages today, separated by commas</label><input class="in" type="text" inputmode="decimal" id="i_a1" aria-describedby="e_a1" style="width:100%;margin-top:4px"><div class="err" id="e_a1" role="alert"></div></div>':c[0]=="@a2"?'<div class="f blk" id="f_a2"><label for="i_a2">Grandchildren (generation 2): ages today, separated by commas, blank for none</label><input class="in" type="text" inputmode="decimal" id="i_a2" aria-describedby="e_a2" style="width:100%;margin-top:4px"><div class="err" id="e_a2" role="alert"></div></div>':c[0]=="@taxm"?rad("taxm","Tax calculation",TAXM):c[0]=="@lhd"?'<div class="note lay" id="lhd"><b>Layered model settings.</b> The return above is the long-run compounded return the model centers on. These settings are starting assumptions set by hand, to be replaced by values fitted to global historical data.</div>':c[0]=="@lslow"?'<div class="f blk lay" id="f_lslow"><label><input type="checkbox" id="i_lslow"> Add slow shifts in volatility (calm and turbulent decades)</label></div>':c[0]=="@lunc"?'<div class="f blk lay" id="f_lunc"><label><input type="checkbox" id="i_lunc"> Treat these settings as uncertain (each simulation draws its own era length, swing size, recovery strength and disaster chance around yours)</label></div>':c[0]=="@rinfo"?'<div class="note" id="rinfo"></div>':c[0]=="@rh"?'<div class="note" id="rh"></div>':c.length==1?`</div></details><details class="sec"${["Trust","Investments"].includes(c[0])?" open":""}><summary>${c[0]}</summary><div>`:
+`<div class="f" id="f_${c[0]}"><label for="i_${c[0]}" id="l_${c[0]}">${c[1]}</label><span><input type="number" inputmode="decimal" id="i_${c[0]}" min="${c[3]}" max="${c[4]}" step="${c[5]}" aria-describedby="e_${c[0]}"> <span class="mu">${c[2]}</span></span><div class="err" id="e_${c[0]}" role="alert"></div></div>`).join("")+"</div></details>";
+CFG.filter(c=>c.length>1).forEach(c=>{const e=$("i_"+c[0]),cl=v=>Math.min(c[4],Math.max(c[3],v));e.value=P[c[0]];
+e.oninput=()=>{const t=e.value.trim(),v=Number(t);if(t===""||!isFinite(v)){fErr(c[0],"Enter a number.");return}if(v<c[3]||v>c[4]){fErr(c[0],`Use a number from ${fN(c[3])} to ${fN(c[4])}${({"%":"%","pts":" points"})[c[2]]||""}.`);return}fErr(c[0],"");P[c[0]]=v;en();sched()};
+e.onchange=()=>{const t=e.value.trim(),v=Number(t);if(t===""||!isFinite(v)||v<c[3]||v>c[4]){e.value=P[c[0]];fErr(c[0],"");fNote(c[0],`That value was not allowed, so ${fN(P[c[0]])} was kept. Allowed: ${fN(c[3])} to ${fN(c[4])}.`)}}});
+["a1","a2"].forEach(k=>{const e=$("i_"+k);e.value=P[k];e.oninput=()=>{const m=ageErr(e.value,k);if(m){fErr(k,m);return}fErr(k,"");P[k]=e.value;sched()};e.onchange=()=>{if(ageErr(e.value,k)){e.value=P[k];fErr(k,"");fNote(k,"That list had a problem, so the previous ages were kept.")}}});
+$("i_runc").checked=P.runc;$("i_runc").onchange=()=>{P.runc=$("i_runc").checked;en();sched()};$("i_btx").checked=P.btx;$("i_btx").onchange=()=>{P.btx=$("i_btx").checked;en();sched()};
+$("i_lslow").checked=P.lslow;$("i_lslow").onchange=()=>{P.lslow=$("i_lslow").checked;sched()};$("i_lunc").checked=P.lunc;$("i_lunc").onchange=()=>{P.lunc=$("i_lunc").checked;sched()};
+$("i_ci").checked=P.ci;$("i_ci").onchange=()=>{P.ci=$("i_ci").checked;sched()};
+$("i_cens").checked=P.cens;$("i_cens").onchange=()=>{P.cens=$("i_cens").checked;sched()};
+cb();
+document.querySelectorAll("#ctl input[type=radio]").forEach(e=>e.onchange=()=>{P[e.name]=e.value;en();sched()});en()}
+function hs(w=1){const r=HIST.map((h,i)=>w*h[0]/100+(1-w)*HB[i]/100),f=HIST.map(h=>h[1]/100),mean=a=>a.reduce((x,y)=>x+y)/a.length,g=a=>Math.exp(mean(a.map(v=>Math.log(1+v))))-1,m=mean(r);return{gm:g(r),gi:g(f),sd:Math.sqrt(mean(r.map(v=>(v-m)**2)))}}
+function en(){const sm=P.taxm=="simple",off={ret:P.mode=="hist",vol:P.mode!="mc",infl:P.mode=="hist",tx:!sm,fw:sm,dy:sm&&!P.btx,qs:sm&&!P.btx,rsd:!P.runc||P.mode=="hist"||P.mode=="lay",bq:!P.btx,bo:!P.btx,gf:sm,tr:sm,tro:sm,dist:P.dmode=="fixed",fx:P.dmode!="fixed",fl:P.dmode!="band",fc:P.dmode!="band",sy:P.dmode!="smooth",br:P.sw>=100||P.mode=="hist",bv:P.sw>=100||(P.mode!="mc"&&P.mode!="lay"),rho:P.sw>=100||(P.mode!="mc"&&P.mode!="lay"),by:P.sw>=100||(sm&&!P.btx),ratio:P.wmode=="age",wmin:P.wmode=="age",mw:P.wmode!="age",senw:P.wmode!="age"};for(const k in off){$("f_"+k).classList.toggle("off",off[k]);$("i_"+k).disabled=off[k]}
+document.querySelectorAll("input[name=rtype]").forEach(e=>e.disabled=P.mode=="hist");const LY=P.mode=="lay";LK.forEach(k=>{$("f_"+k).style.display=LY?"":"none"});$("lhd").style.display=LY?"":"none";$("i_runc").disabled=P.mode=="hist"||LY;$("i_runc").parentNode.parentNode.classList.toggle("off",P.mode=="hist"||LY);$("i_runc").parentNode.parentNode.style.display=LY?"none":"";$("f_rsd").style.display=LY?"none":"";
+$("l_ret").textContent=(LY?"Long-run global stock index return, compounded (":"Global stock index return, compounded (")+(P.rtype=="real"?"real":"nominal")+")";
+const w0=P.sw/100,dyE=w0*P.dy+(1-w0)*P.by,qsE=dyE>0?w0*P.dy*P.qs/dyE:P.qs,gfE=P.gf*w0,pr0=P.dmode=="fixed"?P.fx/(P.fund*1e6)*100:P.dist,dg=sm?P.tx:Math.max(dyE-pr0,0)*(qsE/100*P.tr/100+(1-qsE/100)*P.tro/100)+Math.max(pr0-dyE,0)*gfE/100*P.tr/100+w0*P.fw,cost=(P.fee+dg)/100;let t;
+const mixTxt=w0<1?`${P.sw}% global stock index and ${100-P.sw}% bonds, rebalanced every year. `:"";
+if(P.mode=="hist"){const S=hs(w0),nn=S.gm-cost;t=mixTxt+`Historical 1928-2023 (S&P 500${w0<1?" and 10-year Treasury bonds":""}): ${p2(S.gm)} compounded nominal, ${p2((1+S.gm)/(1+S.gi)-1)} real, volatility ${pt(S.sd)}, inflation ${p2(S.gi)}. After your fees and tax drag: about ${p2(nn)} nominal, ${p2((1+nn)/(1+S.gi)-1)} real. Years run in order from a random start, and a new random start is picked when the data ends. The return, volatility and inflation inputs are not used. The stock data is the S&P 500 (US companies only), which beat global stocks over much of this period, so treat these results as optimistic for a global index.`}
+else{const i=P.infl/100,gn=P.rtype=="real"?(1+P.ret/100)*(1+i)-1:P.ret/100,bn2=P.rtype=="real"?(1+P.br/100)*(1+i)-1:P.br/100,pn=w0*gn+(1-w0)*bn2,nn=pn-cost;t=mixTxt+(w0<1?`The stock index (${p2(gn)}) and bonds (${p2(bn2)}) blend to about ${p2(pn)} nominal, which is ${p2((1+pn)/(1+i)-1)} real. `:`Your return is ${p2(gn)} nominal, which is ${p2((1+gn)/(1+i)-1)} real. `)+`After fees and tax drag: about ${p2(nn)} nominal, ${p2((1+nn)/(1+i)-1)} real (compounded). Results are shown in today's dollars, so the real return is what grows the trust.`+(LY?` In the Layered model this is the long-run center: each simulation draws its own long-run return (± ${P.lsd} points), expected returns drift between eras that last about ${P.lhl} years, about one year in five is a crisis year, inflation varies around ${P.infl}% and rises in crises, and disasters (${P.ldp}% a year) cause permanent losses that the long-run return already allows for.`:"")}
+$("rinfo").textContent=t+(P.runc&&P.mode!="hist"&&P.mode!="lay"?" Each simulation draws its own average return around yours (one standard deviation: "+P.rsd+" points).":"")+(sm?` Flat tax drag: ${dg.toFixed(2)}% a year.`:` Estimated trust tax drag at this payout: ${dg.toFixed(2)}% a year (${dyE.toFixed(2)}% dividends and interest vs ${pr0.toFixed(2)}% starting payout: ${dyE>=pr0?"leftover dividends are retained and taxed":"shares are sold and the gains are taxed"}).`);$("rh").textContent=P.wmode=="age"?`Each adult gets a full share, minors get ${P.mw}% of that and people 65 and older get ${P.senw}%. Generation does not matter.`:`Each person gets ${(100/P.ratio).toFixed(2)}x as much as a person in the next generation.`+(P.wmin>0?` No generation gets less than ${P.wmin}% of generation 1's share.`:"")}
+function sched(){if(isMob()&&document.body.classList.contains("so")){pend=true;clearTimeout(T);$("st").textContent="Results update when you press Show results.";return}clearTimeout(T);$("st").textContent="Waiting for changes…";T=setTimeout(run,400)}
+function run(){$("busy").hidden=false;$("st").textContent="";setTimeout(()=>{try{const t0=performance.now();last=sim(P);draw(last);if(famSeed)genFamily(famSeed);$("st").textContent=`${P.N} paths in ${((performance.now()-t0)/1000).toFixed(1)}s`}finally{$("busy").hidden=true}},30)}
+function draw(r){const k=r.kpi,b=base&&base.kpi;
+{const F0=r.P.fund*1e6,H=r.P.H,t=r.trust,l=H-1;$("sum").textContent=`Starting with ${f$(F0)} and paying ${dTxt(r.P)}, the middle outcome after ${H} years is about ${f$(k.fin)} in today's dollars (the middle 80% of outcomes run from ${f$(t[0][l])} to ${f$(t[2][l])}). The chance it ends below a quarter of its starting value is ${pt(k.low)}${r.P.cens?" among families still alive":""}, and ${pt(k.ext)} of simulated family lines die out. ${k.p50>0?"A first-generation beneficiary typically receives about "+f$(k.p50)+" a year at year "+k.y50+".":""}${P.ci&&k.ci?` The median's 95% range from the number of simulations alone is ${f$(k.ci.fin[0])} to ${f$(k.ci.fin[1])}.`:""}`}
+const items=[["Median trust value, year "+P.H+" (real"+(P.cens?", families still alive":"")+")",k.fin,f$,"r"],["Ends below 25% of starting value"+(P.cens?" (families still alive)":""),k.low,pt,"p"],["Family line dies out",k.ext,pt,"p"],["Generation 1 lifetime payouts, median (real"+(P.btx?", after beneficiary tax":"")+")",k.rec,f$,"r"],["Generation 1 payout per year at year "+k.y50+" (real"+(P.btx?", after beneficiary tax":"")+")",k.p50,f$,"r"]];
+const keys=["fin","low","ext","rec","p50"];
+$("kpis").innerHTML=items.map((it,j)=>{let d="";if(b){const bv=b[keys[j]];d=it[3]=="p"?((it[1]-bv)*100>=0?"+":"")+((it[1]-bv)*100).toFixed(1)+" pts vs baseline":(bv?((it[1]/bv-1)*100>=0?"+":"")+((it[1]/bv-1)*100).toFixed(0)+"% vs baseline":"")}
+const cr=P.ci&&k.ci&&k.ci[keys[j]],ct=cr?`<div class="d" style="color:var(--mu)">95% range: ${cr.map(v=>it[2](v)).join(" to ")}</div>`:"";
+return`<div class="k"><div class="v">${it[2](it[1])}</div><div class="l">${it[0]}</div><div class="d">${d}</div>${ct}</div>`}).join("");
+$("cn").textContent=(P.ci?"Confidence ranges show how much results could shift from the number of simulations alone. They do not cover uncertainty in the assumptions (use the uncertain average return option for that). ":"")+(P.btx?"Payouts are after beneficiary income tax on the dividends paid out ("+P.bq+"% qualified, "+P.bo+"% non-qualified); inheritances and lump sums are not taxed. ":"")+(P.cens?"Trust statistics leave out each simulation from the year its family line dies out, so the percentiles describe trusts that still have beneficiaries ("+pt(1-k.ext)+" of simulated families are still alive at year "+P.H+"). The dies-out figure still counts every simulation.":"");
+const cs=getComputedStyle(document.documentElement),mu=cs.getPropertyValue("--mu").trim(),bd=cs.getPropertyValue("--bd").trim(),ac=cs.getPropertyValue("--ac").trim(),a2=cs.getPropertyValue("--ac2").trim();
+const lg=$("lg").checked,yrs=[...Array(P.H)].map((_,i)=>i+1),z=a=>a.map(v=>v>0?v:null);
+const pal=["#1f77b4","#e8832a","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2"];
+const mk=(id,sets,o={})=>{ch[id]&&ch[id].destroy();ch[id]=new Chart($(id),{type:"line",data:{labels:yrs,datasets:sets},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
+elements:{point:{radius:0},line:{borderWidth:2}},plugins:{legend:{labels:{color:mu,boxWidth:12,filter:i=>i.text!==""}},tooltip:{callbacks:{label:o.lab||(c=>c.dataset.label+": "+(o.num?Math.round(c.parsed.y):f$(c.parsed.y))),footer:o.foot}}},
+scales:{x:{ticks:{color:mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:bd}},y:{type:lg?"logarithmic":"linear",ticks:{color:mu,callback:v=>o.num?v:f$(v)},grid:{color:bd}}}}})};
+const bandS=(x,c,n)=>[{label:"10th pct",data:z(x[0]),borderColor:c+"55",borderWidth:1,fill:false},{label:"90th pct",data:z(x[2]),borderColor:c+"55",borderWidth:1,backgroundColor:c+"22",fill:"-1"},{label:n,data:z(x[1]),borderColor:c}];
+const s1=bandS(r.trust,ac,"Median");if(base)s1.push({label:"Baseline median",data:z(base.trust.slice(0,P.H)),borderColor:a2,borderDash:[6,4],borderWidth:1.5});
+if(P.ci&&r.trust.ci)s1.push({label:"Median, 95% range",data:z(r.trust.ci[1][0]),borderColor:a2+"99",borderWidth:1,fill:false},{label:"",data:z(r.trust.ci[1][1]),borderColor:a2+"99",borderWidth:1,backgroundColor:a2+"55",fill:"-1"});
+s1.push({label:"Starting value",data:yrs.map(()=>P.fund*1e6),borderColor:mu,borderDash:[2,3],borderWidth:1});
+mk("c1",s1);mk("c2",bandS(r.heads,"#2ca02c","Median"),{num:1});
+mk("c3",r.med.map((m,g)=>({label:"Gen "+(g+1),gen:g,data:m,borderColor:PAL[g],spanGaps:false})).filter(d=>d.data.some(v=>v!=null)),{lab:q=>"Gen "+(q.dataset.gen+1)+": "+f$(q.parsed.y)+" each, "+r.cavg[q.dataset.gen][q.dataIndex].toFixed(1)+" beneficiaries",foot:it=>"All generations: "+r.cavg.reduce((a,x)=>a+x[it[0].dataIndex],0).toFixed(1)+" beneficiaries (average per simulation)"});
+const ky=[10,25,50,100,150,200,250,300].filter(y=>y<=P.H),kg=r.med.map((m,g)=>g).filter(g=>ky.some(y=>r.med[g][y-1]!=null));
+const cit=(k,y)=>P.ci&&r.trust.ci?`<br><span class="sm mu">${f$(r.trust.ci[k][0][y-1])} to ${f$(r.trust.ci[k][1][y-1])}</span>`:"";
+$("t1").innerHTML="<tr><th>Year</th><th>Trust 10th</th><th>Trust median</th><th>Trust 90th</th><th>Living (median)</th>"+kg.map(g=>`<th>Gen ${g+1} payout</th>`).join("")+"</tr>"+
+ky.map(y=>`<tr><td>${y}</td><td>${f$(r.trust[0][y-1])}${cit(0,y)}</td><td>${f$(r.trust[1][y-1])}${cit(1,y)}</td><td>${f$(r.trust[2][y-1])}${cit(2,y)}</td><td>${nz(r.heads[1][y-1])}</td>${kg.map(g=>`<td>${r.med[g][y-1]==null?"-":f$(r.med[g][y-1])}</td>`).join("")}</tr>`).join("");
+lifeTable(r);cmp();drawT(r);cmpDraw(r);explain(r)}
+const SC=[],PAL=["#1f77b4","#e8832a","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf","#393b79","#ad494a","#637939","#a55194"],zz=a=>a.map(v=>v>0?v:null);
+const cst=()=>{const c=getComputedStyle(document.documentElement);return{mu:c.getPropertyValue("--mu").trim(),bd:c.getPropertyValue("--bd").trim(),ac:c.getPropertyValue("--ac").trim()}};
+const mkc=(id,cfg)=>{ch[id]&&ch[id].destroy();ch[id]=new Chart($(id),cfg)};
+const payAt=(o,y,gs)=>y>o.P.H?"-":gs.map(g=>{const v=o.med[g-1][y-1];return v==null?"-":f$(v)}).join(" / ");
+const upd=()=>{base=SC[0]||null;draw(last)};
+function cmp(){if(!last)return;const c=cst(),cur={name:"Current",P:last.P,kpi:last.kpi,trust:last.trust[1],med:last.med,life:last.life,lifeS:last.lifeS,tot:last.tot},all=[cur,...SC];
+const R=[["Portfolio",o=>o.P.sw>=100?"100% global stock index":o.P.sw+"% global stock index / "+(100-o.P.sw)+"% bonds"],["Return model",o=>({mc:"Monte Carlo",lay:"Layered",simple:"Simple",hist:"Historical S&P 500"})[o.P.mode]+(o.P.mode=="lay"?" (±"+o.P.lsd+" pts, trend "+o.P.ltr+"/century, eras "+o.P.lhl+"y ±"+o.P.ldr+", link "+o.P.lrc+", vol "+o.P.lvn+"/"+o.P.lvc+"%, disasters "+o.P.ldp+"%×"+o.P.ldl+"%"+(o.P.lslow?", slow vol":"")+(o.P.lunc?", uncertain settings":"")+")":"")],["Global stock index return entered",o=>o.P.mode=="hist"?"-":o.P.ret+"% "+(o.P.rtype=="real"?"real":"nominal")],["Global stock index volatility",o=>o.P.mode=="mc"?o.P.vol+"%":"-"],["Bond return / volatility / correlation",o=>o.P.sw>=100||o.P.mode=="hist"?"-":o.P.br+"% / "+(o.P.mode=="mc"?o.P.bv+"% / "+o.P.rho:"fixed")],["Inflation",o=>o.P.mode=="hist"?"historical":o.P.mode=="lay"?"varies around "+o.P.infl+"%":o.P.infl+"%"],["Fees and trustee costs",o=>o.P.fee+"%"],["Tax method",o=>o.P.taxm=="simple"?"Flat "+o.P.tx+"% a year":"Detailed: yield "+o.P.dy+"%, qualified "+o.P.qs+"%, gain share "+o.P.gf+"%, rates "+o.P.tr+"% / "+o.P.tro+"%"],["Return uncertainty",o=>o.P.mode=="lay"?"± "+o.P.lsd+" pts (layered)":o.P.runc&&o.P.mode!="hist"?"± "+o.P.rsd+" pts":"none"],["Beneficiary tax",o=>o.P.btx?"On ("+o.P.bq+"% / "+o.P.bo+"%)":"Off"],["Distribution rule",o=>dTxt(o.P)],["Starting family",o=>"Children aged "+(o.P.a1||"-")+(o.P.a2?"; grandchildren aged "+o.P.a2:"")],["Average age at childbirth",o=>o.P.bage],["Payouts to each person stop at age",o=>o.P.cap>0?o.P.cap:"never"],["Children / ever have children",o=>o.P.kids+" / "+o.P.pe+"%"],["Share weights",o=>o.P.wmode=="age"?"By age: minors "+o.P.mw+"%, 65+ "+o.P.senw+"%":(100/o.P.ratio).toFixed(2)+"x per generation"+(o.P.wmin>0?", floor "+o.P.wmin+"%":"")],["Years / paths",o=>o.P.H+" / "+o.P.N],
+["Median trust value at end (real)",o=>f$(o.kpi.fin)],["Ends below 25% of start",o=>pt(o.kpi.low)],["Family line dies out",o=>pt(o.kpi.ext)],["Average tax drag per year",o=>(o.kpi.drag*100).toFixed(2)+"%"],["Gen 1 lifetime payouts (median)",o=>f$(o.kpi.rec)],["Payout per person, year 50: Gen 1 / 2 / 3",o=>payAt(o,50,[1,2,3])],["Payout per person, year 100: Gen 2 / 3 / 4",o=>payAt(o,100,[2,3,4])]];
+const L=$("lm").value=="sofar"?"lifeS":"life",lw=L=="life"?"completed lives":"so far",q3=a=>a.map(f$).join(" / "),gset=[...new Set(all.flatMap(o=>(o[L]||[]).map(l=>l.g)))].sort((a,b)=>a-b).slice(0,10),ix=R.findIndex(r=>r[0].startsWith("Gen 1 lifetime"));
+R.splice(ix,1,["Total payouts over the simulation, 10th / median / 90th (families still alive at the end if censoring is on)",o=>o.tot?q3(o.tot):"-"],...gset.map(g=>[`Gen ${g} lifetime payouts per member (${lw}), 10th / median / 90th`,o=>{const l=(o[L]||[]).find(x=>x.g==g);return l?q3(l.rec):"-"}]));
+$("t3").innerHTML="<tr><th></th>"+all.map((o,i)=>`<th${i?"":` class="cur"`}>${o.name}${i?` <button data-x="${i-1}" aria-label="Remove ${o.name}">x</button>`:""}</th>`).join("")+"</tr>"+R.map(r=>`<tr><td>${r[0]}</td>${all.map((o,i)=>`<td${i?"":` class="cur"`}>${r[1](o)}</td>`).join("")}</tr>`).join("");
+document.querySelectorAll("#t3 [data-x]").forEach(b=>b.onclick=()=>{SC.splice(+b.dataset.x,1);upd()});
+const H=Math.max(...all.map(o=>o.P.H));
+mkc("c4",{type:"line",data:{labels:[...Array(H)].map((_,i)=>i+1),datasets:all.map((o,i)=>({label:o.name,data:zz(o.trust),borderColor:i?PAL[(i-1)%6]:c.ac,borderDash:i?[]:[5,4],borderWidth:2,pointRadius:0}))},
+options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{color:c.mu,boxWidth:12}},tooltip:{callbacks:{label:q=>q.dataset.label+": "+f$(q.parsed.y)}}},
+scales:{x:{ticks:{color:c.mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:c.bd}},y:{type:$("lg").checked?"logarithmic":"linear",ticks:{color:c.mu,callback:v=>f$(v)},grid:{color:c.bd}}}}})}
+function drawT(r){if(!r)return;const c=cst(),g=Math.min(GM,Math.max(1,Math.round(+$("tg").value)||1)),Y=Math.max(0,+$("ta").value||0),H=r.H,N=r.N,pr=[],al=[],ov=[],hh=r.payH[g-1],tt=r.payT[g-1],b0=Y>0?hb(Y):0;
+for(let t=0;t<H;t++){const a=hh?tt[t]:0;let k=0;if(a){const off=t*(NB+1);for(let b=b0;b<=NB;b++)k+=hh[off+b]}al.push(a/N);pr.push(a>=Math.max(10,N*.02)?k/a:null);ov.push(k/N)}
+mkc("c6",{type:"line",data:{labels:[...Array(H)].map((_,i)=>i+1),datasets:[{label:"Chance payout is at least "+f$(Y)+", if generation "+g+" is alive",data:pr,borderColor:c.ac,borderWidth:2,pointRadius:0},{label:"Chance generation "+g+" has living members",data:al,borderColor:c.mu,borderDash:[5,4],borderWidth:1.5,pointRadius:0}]},
+options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{color:c.mu,boxWidth:12}},tooltip:{callbacks:{label:q=>q.dataset.label.split(",")[0]+": "+pt(q.parsed.y)}}},
+scales:{x:{ticks:{color:c.mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:c.bd}},y:{min:0,max:1,ticks:{color:c.mu,callback:v=>Math.round(v*100)+"%"},grid:{color:c.bd}}}}});
+const ky=[10,25,50,75,100,150,200,250,300].filter(y=>y<=H);
+$("t4").innerHTML=`<tr><th>Year</th><th>Generation ${g} alive</th><th>Payout at least ${f$(Y)}, if alive</th><th>Payout at least ${f$(Y)}, all simulations</th></tr>`+ky.map(y=>`<tr><td>${y}</td><td>${pt(al[y-1])}</td><td>${pr[y-1]==null?"-":pt(pr[y-1])}</td><td>${pt(ov[y-1])}</td></tr>`).join("");explainT(g,Y,pr,al,H)}
+$("sv").onclick=()=>{if(!last)return;if(SC.length>=5){$("st").textContent="Maximum of 5 saved scenarios";return}SC.push({name:$("sn").value.trim()||"Scenario "+(SC.length+1),P:last.P,kpi:last.kpi,trust:last.trust[1],med:last.med,life:last.life,lifeS:last.lifeS,tot:last.tot});$("sn").value="";upd()};
+$("uc").onclick=()=>{SC.length=0;upd()};$("tg").oninput=$("ta").oninput=()=>{const g=Number($("tg").value),Y=Number($("ta").value),m=!Number.isInteger(g)||g<1||g>GM?`Generation must be a whole number from 1 to ${GM}.`:!isFinite(Y)||$("ta").value.trim()===""||Y<0?"Enter a payout of $0 or more.":"";
+$("tg").classList.toggle("bad",m.startsWith("Gen"));$("ta").classList.toggle("bad",!!m&&!m.startsWith("Gen"));$("te").textContent=m;if(!m)drawT(last)};
+function cmpDraw(r){const el=$("cmpc");$("cmph").hidden=!!r.cmp;if(!r.cmp){el.style.display="none";return}el.style.display="";{const q=r.cmp.pool.find(p=>p.y==50)||r.cmp.pool[0];$("cmpx").textContent=q?`At year ${q.y}, the one pot pays about ${q.np.toFixed(1)} people a typical ${f$(q.p[1])} each, while separate branch trusts pay about ${q.nb.toFixed(1)} people a typical ${f$(q.b[1])} each. The money paid out each year is the same; the structures differ in how many people share it and how evenly.`:""}
+$("cmpn").textContent=r.P.dmode!="pct"?"You chose a different distribution rule above: the one-pot side uses it, while branch trusts use the percentage rule.":"";
+const c=cst(),H=r.H,yrs=[...Array(H)].map((_,i)=>i+1),lgs=$("lg").checked,sets=[];
+[0,1,2].forEach(g=>{sets.push({label:"Gen "+(g+1)+", one pot",data:r.med[g],borderColor:PAL[g],borderWidth:2,pointRadius:0});sets.push({label:"Gen "+(g+1)+", branch trusts",data:r.cmp.medB[g],borderColor:PAL[g],borderDash:[5,4],borderWidth:2,pointRadius:0})});
+const base={responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{color:c.mu,boxWidth:12}}}},xs={ticks:{color:c.mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:c.bd}};
+mkc("c7",{type:"line",data:{labels:yrs,datasets:sets},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:q=>q.dataset.label+": "+f$(q.parsed.y)}}},scales:{x:xs,y:{type:lgs?"logarithmic":"linear",ticks:{color:c.mu,callback:v=>f$(v)},grid:{color:c.bd}}}}});
+mkc("c8",{type:"line",data:{labels:yrs,datasets:[{label:"One pot",data:r.cmp.shP,borderColor:c.ac,borderWidth:2,pointRadius:0},{label:"Branch trusts",data:r.cmp.shB,borderColor:"#e8832a",borderDash:[5,4],borderWidth:2,pointRadius:0},{label:"Lifetime trusts, then outright",data:r.cmp.shC,borderColor:"#2ca02c",borderDash:[2,3],borderWidth:2,pointRadius:0}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:q=>q.dataset.label+": "+pt(q.parsed.y)}}},scales:{x:xs,y:{min:0,max:1,ticks:{color:c.mu,callback:v=>Math.round(v*100)+"%"},grid:{color:c.bd}}}}});
+const tr3=a=>a.map(f$).join(" / ");
+$("t5").innerHTML="<tr><th>Year</th><th>Recipients per simulation: one pot</th><th>Recipients per simulation: branch trusts</th><th>Recipients per simulation: lifetime trusts</th><th>Payout per recipient, one pot (10th / median / 90th)</th><th>Payout per recipient, branch trusts (10th / median / 90th)</th><th>Payout per recipient, lifetime trusts (10th / median / 90th)</th></tr>"+
+r.cmp.pool.map(p=>`<tr><td>${p.y}</td><td>${p.np.toFixed(1)}</td><td>${p.nb.toFixed(1)}</td><td>${p.nc.toFixed(1)}</td><td>${tr3(p.p)}</td><td>${tr3(p.b)}</td><td>${p.nc>0?tr3(p.c):"-"}</td></tr>`).join("");
+$("t6").innerHTML="<tr><th>Generation</th><th>Members per simulation (so far)</th><th>One pot: median received so far</th><th>Branch trusts: median received so far</th><th>Branch trusts: share with nothing yet</th><th>Lifetime trusts: median received so far (payouts or lump sum)</th><th>Lifetime trusts: share with nothing</th></tr>"+
+r.cmp.life.map(l=>`<tr><td>Gen ${l.g}</td><td>${l.nps.toFixed(2)}</td><td>${f$(l.pot)}</td><td>${f$(l.alt)}</td><td>${pt(l.zero)}</td><td>${f$(l.outr)}</td><td>${pt(l.zeroO)}</td></tr>`).join("");
+$("cmps").textContent=`Lifetime trusts, then outright: the trust ends ${r.cmp.endMed>H?"after year "+H:"in year "+r.cmp.endMed} (median), and it ends within the simulated years in ${pt(r.cmp.endFrac)} of simulations. The one pot and branch trusts continue as long as the family does.`}
+let famSeed=null,famR=null;
+function genFamily(seed){const sd=seed||Math.floor(Math.random()*1e9)+1;famSeed=sd;$("fs").value=sd;famR=sim({...P,N:1,seed:sd,one:true,cmp:false});drawFam()}
+function treeHtml(o,H,end){const all=o.people,ppl=all.slice(0,1200),kids={};ppl.forEach(p=>{(kids[p[4]]=kids[p[4]]||[]).push(p)});Object.values(kids).forEach(a=>a.sort((x,y)=>x[2]-y[2]));
+const order=[],st=[...(kids[0]||[])].reverse();while(st.length){const p=st.pop();order.push(p);const k=kids[p[0]]||[];for(let i=k.length-1;i>=0;i--)st.push(k[i])}
+const row={};order.forEach((p,i)=>row[p[0]]=i);const n=order.length,rh=n>150?5:12,W=900,L=10,R=10,T=22,B=26,Ht=T+n*rh+B,xs=y=>L+(W-L-R)*Math.max(0,Math.min(H,y))/H;
+let v=`<svg viewBox="0 0 ${W} ${Ht}" width="100%" style="min-width:640px" role="img" aria-label="Family tree timeline">`;
+for(let y=0;y<=H;y+=50)v+=`<line x1="${xs(y)}" x2="${xs(y)}" y1="${T-4}" y2="${Ht-B}" style="stroke:var(--bd)"/><text x="${xs(y)}" y="${Ht-10}" font-size="10" text-anchor="middle" style="fill:var(--mu)">${y}</text>`;
+order.forEach(p=>{const par=p[4];if(par&&row[par]!=null&&p[2]>=0){const x=xs(p[2]);v+=`<line x1="${x}" x2="${x}" y1="${T+row[par]*rh+rh/2}" y2="${T+row[p[0]]*rh+rh/2}" style="stroke:var(--mu)" stroke-opacity=".5"/>`}});
+order.forEach(p=>{const y=T+row[p[0]]*rh,x1=xs(Math.max(p[2],0)),x2=Math.max(xs(Math.min(p[3],H)),x1+1);
+v+=`<rect x="${x1}" y="${y+rh*.2}" width="${x2-x1}" height="${rh*.6}" fill="${PAL[(p[1]-1)%PAL.length]}"><title>Person #${p[0]}, generation ${p[1]}, born year ${p[2]}, ${p[3]>H?"alive at end":"died year "+p[3]+" (age "+(p[3]-p[2])+")"}${p[4]?", parent #"+p[4]:""}</title></rect>`});
+if(end!=null)v+=`<line x1="${xs(end)}" x2="${xs(end)}" y1="${T-4}" y2="${Ht-B}" stroke="#d62728" stroke-dasharray="4 3"/>`;
+v+=`<text x="${W/2}" y="${Ht-1}" font-size="10" text-anchor="middle" style="fill:var(--mu)">Year</text></svg>`;
+const gs=[...new Set(order.map(p=>p[1]))].sort((a,b)=>a-b);
+return{svg:v,legend:gs.map(g=>`<span style="margin-right:10px"><span style="display:inline-block;width:10px;height:10px;background:${PAL[(g-1)%PAL.length]};margin-right:4px"></span>Gen ${g}</span>`).join("")+(all.length>1200?` Showing the first 1,200 of ${all.length.toLocaleString()} people.`:"")+(end!=null?` <span style="color:#d62728">Dashed line: the last descendant dies.</span>`:"")}}
+function drawFam(){const r=famR;if(!r||!r.one)return;$("famc").style.display="";$("famh").hidden=true;const o=r.one,H=r.H,btx=r.P.btx,nom=$("fb").value=="nom",c=cst(),G=Math.max(1,...o.people.map(p=>p[1])),mg=Math.min(GM,G),
+cv=(v,t)=>nom?v:v/o.dfl[t],pv=(v,t)=>nom?v*o.dfl[t]:v,fd=v=>"$"+Math.round(v).toLocaleString();
+let last=-1;for(let t=0;t<H;t++)if(o.living[t]>0)last=t;const end=last<H-1?last:H-1,ended=last<H-1;
+const rows=[],tot={D:0,earn:0,tax:0,fee:0,bt:0};
+for(let t=0;t<=end;t++){const pg=[];for(let g=1;g<=mg;g++){const v=o.pay[g-1][t];pg.push(v==v?pv(v,t):null)}
+const R={y:t+1,liv:o.living[t],lg:[...Array(mg)].map((_,g)=>o.lcn[g+1][t]),el:o.ec[t],ret:o.gr[t],v0:cv(o.v0[t],t),earn:cv(o.earn[t],t),tax:cv(o.tax[t],t),fee:cv(o.fee[t],t),D:cv(o.D[t],t),bt:cv(o.bt[t],t),pg,v1:cv(o.v1[t],t)};
+tot.D+=R.D;tot.bt+=R.bt;tot.earn+=R.earn;tot.tax+=R.tax;tot.fee+=R.fee;rows.push(R)}
+const fv=rows.length?rows[rows.length-1].v1:0,basis=nom?"nominal":"today's";
+$("fk").innerHTML=[["Descendants ever in the family",o.people.length.toLocaleString()],["Generations reached",G],["Total paid out ("+basis+" $)",f$(tot.D)],["Investment earnings, before costs",f$(tot.earn)],["Taxes plus fees paid",f$(tot.tax+tot.fee)],...(btx?[["Beneficiary tax paid",f$(tot.bt)]]:[]),["Trust value at the end",f$(fv)]].map(k=>`<div class="k"><div class="v">${k[1]}</div><div class="l">${k[0]}</div></div>`).join("");
+$("fe").textContent=rows.length?(ended?`The last descendant dies in year ${last+1}. This table stops there; the trust would keep growing with no one to pay.`:`The family is still alive at the end of year ${H}, the last simulated year.`)+` Seed ${famSeed}.`+(o.gp!=null&&((r.P.runc&&r.P.mode!="hist")||r.P.mode=="lay")?" Drawn long-run return for this family: "+(o.gp*100).toFixed(2)+"% a year, compounded nominal.":""):"No descendants alive in year 1.";
+const hd=["Year","Living descendants","Living by generation","Eligible for payouts","Return that year","Trust value, start","Investment earnings","Taxes","Fees","Total payout",...(btx?["Beneficiary tax","Payout after tax"]:[]),...[...Array(mg)].map((_,g)=>`Payout per person${btx?" after tax":""}, Gen ${g+1}`),"Trust value, end"];
+const cells=R=>[R.y,R.liv,R.lg.join(" / "),R.el,(R.ret*100).toFixed(1)+"%",fd(R.v0),fd(R.earn),fd(R.tax),fd(R.fee),fd(R.D),...(btx?[fd(R.bt),fd(R.D-R.bt)]:[]),...R.pg.map(v=>v==null?"-":fd(v)),fd(R.v1)];
+$("ft").innerHTML="<tr>"+hd.map(h=>`<th>${h}</th>`).join("")+"</tr>"+rows.map(R=>"<tr>"+cells(R).map(x=>`<td>${x}</td>`).join("")+"</tr>").join("");
+$("fx").value=[hd.join("\t"),...rows.map(R=>[R.y,R.liv,R.lg.join("/"),R.el,(R.ret*100).toFixed(2),Math.round(R.v0),Math.round(R.earn),Math.round(R.tax),Math.round(R.fee),Math.round(R.D),...(btx?[Math.round(R.bt),Math.round(R.D-R.bt)]:[]),...R.pg.map(v=>v==null?"":Math.round(v)),Math.round(R.v1)].join("\t"))].join("\n");
+const tr9=treeHtml(o,H,ended?last+1:null);$("ftree").innerHTML=tr9.svg;$("ftlg").innerHTML=tr9.legend;
+$("fp").innerHTML="<tr><th>#</th><th>Generation</th><th>Born (year)</th><th>Died (year)</th><th>Age at death</th><th>Parent #</th></tr>"+o.people.slice(0,600).map(p=>`<tr><td>${p[0]}</td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]>H?"alive at end":p[3]}</td><td>${p[3]>H?"-":p[3]-p[2]}</td><td>${p[4]||"-"}</td></tr>`).join("");
+const xl=rows.map(R=>R.y),base={responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},plugins:{legend:{labels:{color:c.mu,boxWidth:12}}}},xs={ticks:{color:c.mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:c.bd}};
+mkc("c9",{type:"line",data:{labels:xl,datasets:[{label:"Trust value, start of year",data:rows.map(R=>R.v0),borderColor:c.ac,borderWidth:2,pointRadius:0},{label:"Total payout",data:rows.map(R=>R.D),borderColor:"#e8832a",borderWidth:2,pointRadius:0},{label:"Investment earnings",data:rows.map(R=>R.earn),borderColor:"#2ca02c",borderWidth:1,pointRadius:0}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:q=>q.dataset.label+": "+f$(q.parsed.y)}}},scales:{x:xs,y:{type:"linear",ticks:{color:c.mu,callback:v=>f$(v)},grid:{color:c.bd}}}}});
+mkc("c10",{type:"line",data:{labels:xl,datasets:[...[...Array(mg)].map((_,g)=>({label:"Gen "+(g+1),data:rows.map(R=>R.lg[g]),borderColor:PAL[g],borderWidth:2,pointRadius:0})),{label:"All generations",data:rows.map(R=>R.liv),borderColor:c.mu,borderDash:[5,4],borderWidth:1.5,pointRadius:0}]},options:{...base,scales:{x:xs,y:{ticks:{color:c.mu},grid:{color:c.bd}}}}})}
+$("more").onclick=()=>{P.N=Math.min(5000,P.N+1000);$("i_N").value=P.N;en();run()};
+function showTab(t){document.querySelectorAll(".tab").forEach(e=>e.hidden=e.id!="tab-"+t);document.querySelectorAll(".tabs button").forEach(b=>{const on=b.dataset.t==t;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});setTimeout(()=>Object.values(ch).forEach(c=>c&&c.resize()),0)}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+$("fam").onclick=()=>{genFamily();showTab("fam")};
+$("fg").onclick=()=>genFamily(parseInt($("fs").value)||0);$("fn").onclick=()=>genFamily(0);$("fb").onchange=drawFam;
+function cb(){const b=$("cmpb");b.textContent="Compare trust structures: "+(P.cmp?"on":"off");b.classList.toggle("p",P.cmp)}
+function lifeTable(r){const L=$("lm").value=="sofar"?r.lifeS:r.life;
+$("t2").innerHTML="<tr><th>Generation</th><th>Members per simulation</th><th>Received per member (10th / median / 90th)</th><th>Invested per member (10th / median / 90th)</th><th>Simulations where this generation has no one counted</th><th>Received, generation total per simulation, when it has members (10th / median / 90th)</th><th>Invested, generation total per simulation, when it has members (10th / median / 90th)</th></tr>"+
+L.map(l=>`<tr><td>Gen ${l.g}</td><td>${l.nps.toFixed(2)}</td><td>${l.rec.map(f$).join(" / ")}</td><td>${l.inv.map(f$).join(" / ")}</td><td>${l.z!=null?pt(l.z):"-"}</td><td>${l.tr?l.tr.map(f$).join(" / "):"-"}</td><td>${l.ti?l.ti.map(f$).join(" / "):"-"}</td></tr>`).join("")}
+$("lm").onchange=()=>{if(last){lifeTable(last);cmp();explain(last)}};
+$("lg").onchange=()=>last&&draw(last);
+// ---- Input checks ----
+const fN=v=>Number(v).toLocaleString("en-US",{maximumFractionDigits:2});
+function fErr(k,m){const f=$("f_"+k),i=$("i_"+k),e=$("e_"+k);if(f)f.classList.toggle("bad",!!m);if(i)i.setAttribute("aria-invalid",m?"true":"false");if(e)e.textContent=m}
+const NT={};function fNote(k,m){const e=$("e_"+k);if(!e)return;e.textContent=m;clearTimeout(NT[k]);NT[k]=setTimeout(()=>{if(e.textContent==m)e.textContent=""},5000)}
+function ageErr(v,k){const t=String(v).split(/[\s,;]+/).filter(x=>x!=="");if(t.length>20)return"Enter at most 20 ages.";const b=t.find(x=>!/^\d+(\.\d+)?$/.test(x)||+x>=100);if(b!=null)return`"${b}" is not an age from 0 to 99.`;
+if(!t.length&&k=="a1"&&!String(P.a2).trim())return"Enter at least one child or grandchild age.";return""}
+// ---- Plain-language explanations ----
+function explain(r){const H=r.P.H,t=r.trust,hd=r.heads,k=r.kpi,F0=r.P.fund*1e6,y=Math.min(100,H),y5=Math.min(50,H),hv=v=>v==v&&v!=null?Math.round(v).toLocaleString():"none";
+$("x1").textContent=`In the middle simulation the trust is worth ${f$(t[1][y-1])} after ${y} years and ${f$(t[1][H-1])} after ${H} years, in today's dollars. The shaded band covers the middle 80% of simulations: in 1 out of 10 the trust ends below ${f$(t[0][H-1])}, and in 1 out of 10 above ${f$(t[2][H-1])}. `+
+(t[1][H-1]<F0?"The middle case ends below the starting value, so payouts are slowly spending down the trust in today's dollars.":"The middle case ends above the starting value, so investment growth more than covers the payouts.")+" The spread widens over time because small differences in yearly returns compound over many decades."+($("lg").checked?" The scale is logarithmic, so each gridline is ten times the one below.":"");
+$("x2").textContent=`A typical family has ${hv(hd[1][y-1])} living descendants after ${y} years and ${hv(hd[1][H-1])} after ${H} years. In 1 out of 10 simulations it has ${hv(hd[0][H-1])} or fewer${r.P.cens?" (counting only families still alive)":""}, and ${pt(k.ext)} of simulated family lines die out completely. A bigger family means each person's share is smaller.`;
+const gl=r.med.map((m,g)=>[g,m[y5-1]]).filter(x=>x[1]!=null).slice(0,4).map(x=>`generation ${x[0]+1} about ${f$(x[1])}`);
+$("x3").textContent=`Each line is what a typical member of one generation receives in a year, in today's dollars${r.P.btx?", after beneficiary income tax":""}. At year ${y5}: ${gl.length?gl.join(", "):"no generation has enough data yet"}. `+(r.P.wmode=="age"?"Shares depend on age, not generation, so generations differ mainly because their members are different ages.":`Each person gets ${(100/r.P.ratio).toFixed(2)} times the share of a person in the next generation${r.P.wmin>0?`, but no less than ${r.P.wmin}% of generation 1's share`:""}.`)+" A line starts once enough simulations include that generation and ends when it has mostly died out. Hover a year to see how many beneficiaries each generation has.";
+const L=$("lm").value=="sofar"?r.lifeS:r.life,l1=L.find(l=>l.g==1),l3=L.find(l=>l.g==3);
+$("x7").textContent=(l1?`A typical generation 1 member receives ${f$(l1.rec[1])} over their lifetime${r.P.btx?" after tax":""}`+(l3?`, and a typical generation 3 member ${f$(l3.rec[1])}`:"")+". The range from the 10th to the 90th percentile shows how much luck in markets and family size matters. ":"")+"\"Invested\" shows what those payouts would grow to by the person's death if they invested each one like the trust."}
+function explainT(g,Y,pr,al,H){const ys=[50,100,150,200].filter(y=>y<=H&&pr[y-1]!=null);
+$("x6").textContent=ys.length?`If generation ${g} has living members, the chance one of them receives at least ${f$(Y)} in a year is `+ys.map(y=>`${pt(pr[y-1])} at year ${y}`).join(", ")+`. The dashed line is the chance that generation has any living members at all. Payouts per person fall as the family grows, so the chance can drop over time.`:`Generation ${g} does not have enough living members in the simulated years to estimate this. Try an earlier generation or more years.`}
+// ---- Export ----
+const csvq=v=>{const x=v==null||v!==v?"":String(v);return/[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x};
+function tRows(id){const el=$(id);if(!el||!el.rows||!el.rows.length)return[];return Array.from(el.rows).map(tr=>Array.from(tr.cells).map(c=>c.textContent.replace(/\s+x$/,"").trim()))}
+function setRows(p){const out=[];for(const k in DEF){const c=CFG.find(x=>x[0]==k);const lab=c&&c.length>1?c[1]:({mode:"Return model",rtype:"Return entered as",dmode:"Distribution rule",taxm:"Tax calculation",wmode:"Weight shares by",a1:"Children's ages",a2:"Grandchildren's ages",cmp:"Compare trust structures",cens:"Leave out families that die out",ci:"Confidence ranges",runc:"Uncertain average return",btx:"Beneficiary income tax"})[k]||k;
+out.push([lab,typeof p[k]=="boolean"?(p[k]?"on":"off"):p[k],c&&c.length>1?c[2]:""])}return out}
+function buildCsv(r){const R=[],H=r.P.H,G=r.med.map((m,g)=>g).filter(g=>r.med[g].some(v=>v!=null)),rn=v=>v==null||v!==v?"":Math.round(v);
+R.push(["Long Trust Lab results"],["Created",new Date().toISOString().slice(0,10)],["Share link",(()=>{try{return shareUrl()}catch(e){return""}})()],["All dollar amounts are in today's dollars. Results are simulations, not predictions or advice."],[]);
+R.push(["SETTINGS","Value","Unit"],...setRows(r.P),[]);
+R.push(["SUMMARY"],[$("sum").textContent],["Median trust value at end",rn(r.kpi.fin)],["Chance trust ends below 25% of start",r.kpi.low],["Chance family line dies out",r.kpi.ext],[]);
+R.push(["YEAR BY YEAR","Trust 10th percentile","Trust median","Trust 90th percentile","Living descendants 10th","Living median","Living 90th",...G.map(g=>`Gen ${g+1} median payout per person`)]);
+for(let t=0;t<H;t++)R.push([t+1,rn(r.trust[0][t]),rn(r.trust[1][t]),rn(r.trust[2][t]),rn(r.heads[0][t]),rn(r.heads[1][t]),rn(r.heads[2][t]),...G.map(g=>rn(r.med[g][t]))]);
+R.push([]);
+const sec=(n,id)=>{const rows=tRows(id);if(rows.length)R.push([n],...rows,[])};
+sec("LIFETIME PER MEMBER ("+($("lm").value=="sofar"?"so far":"completed lives")+")","t2");sec("PAYOUT TARGET","t4");sec("SAVED SCENARIOS","t3");if(r.cmp){sec("TRUST STRUCTURES: RECIPIENTS AND PAYOUTS","t5");sec("TRUST STRUCTURES: LIFETIME","t6")}
+return R.map(row=>row.map(csvq).join(",")).join("\r\n")}
+let DL=null;try{if(window.claude&&window.claude.use)window.claude.use("downloads").then(d=>{DL=d}).catch(()=>{})}catch(e){}
+$("exd").onclick=()=>{if(!last)return;const txt=buildCsv(last),fn="long-trust-lab-results.csv",bom="\ufeff";$("ext").value=txt;
+if(DL){DL.save({filename:fn,data:bom+txt}).then(()=>{$("st").textContent="Saved "+fn+"."}).catch(e=>{if(e&&e.code=="declined"){$("st").textContent="Download cancelled."}else{$("exb").hidden=false}});return}
+$("exb").hidden=false;
+try{const b=new Blob([bom+txt],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}catch(e){}};
+$("exc").onclick=()=>{$("exb").hidden=true};
+function prHead(){const p=last.P;return`<h2 style="margin:0 0 4px;font:600 20px Georgia,serif">Long Trust Lab · Dynasty trust simulation report</h2><p class="sm" style="margin:0 0 8px">${new Date().toLocaleDateString()} · ${p.N.toLocaleString()} simulations over ${p.H} years · today's dollars</p><p class="sm" style="margin:0 0 10px"><b>Key settings:</b> ${f$(p.fund*1e6)} funding; payout ${dTxt(p)}; ${p.sw>=100?"100% global stocks":p.sw+"% stocks / "+(100-p.sw)+"% bonds"} at ${p.ret}% ${p.rtype=="real"?"real":"nominal"} (${({mc:"Monte Carlo",lay:"Layered",simple:"Simple",hist:"Historical"})[p.mode]}); fees ${p.fee}%; family: children aged ${p.a1||"none"}${p.a2?", grandchildren aged "+p.a2:""}, ${p.kids} children per descendant; ${p.wmode=="age"?"shares weighted by age":"each generation gets "+p.ratio+"% of the share of the one before"}.</p>`}
+// Builds a standalone report page. Charts are redrawn in light colors, copied as images, then restored.
+function buildReport(){const de=document.documentElement,oldTh=de.getAttribute("data-theme"),tabs=[...document.querySelectorAll(".tab")],hid=tabs.map(t=>t.hidden),imgs={};
+de.setAttribute("data-theme","light");tabs.forEach(t=>t.hidden=false);
+try{draw(last);Object.entries(ch).forEach(([id,c])=>{if(!c)return;c.resize();c.update("none");const cv=$(id);if(!cv||!cv.width||!cv.height)return;const o=document.createElement("canvas");o.width=cv.width;o.height=cv.height;const x=o.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,o.width,o.height);x.drawImage(cv,0,0);imgs[id]=o.toDataURL("image/png")})}catch(e){}
+const grab=sel=>{const n=typeof sel=="string"?document.querySelector(sel):sel;if(!n)return"";const c=n.cloneNode(true);
+c.querySelectorAll("canvas").forEach(cv=>{const im=document.createElement("img");if(imgs[cv.id])im.src=imgs[cv.id];im.alt="Chart";cv.closest(".ch")?cv.closest(".ch").replaceWith(im):cv.replaceWith(im)});
+c.querySelectorAll("input,select,button,textarea,.err,[hidden]").forEach(e=>{if(e.tagName=="INPUT"&&e.id=="tg")e.replaceWith(String(e.value));else if(e.tagName=="INPUT"&&e.id=="ta")e.replaceWith(Number(e.value).toLocaleString());else if(e.tagName=="SELECT")e.replaceWith(e.options[e.selectedIndex]?e.options[e.selectedIndex].text+": ":"");else e.remove()});
+c.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));c.removeAttribute("id");c.querySelectorAll("[style]").forEach(e=>{e.style.maxHeight="";e.style.overflow=""});return c.outerHTML};
+let body=`<header>${prHead()}</header><p>${esc($("sum").textContent)}</p><div class="kpis">${$("kpis").innerHTML}</div><p class="mu sm">${esc($("cn").textContent)}</p>`;
+body+=[...document.querySelectorAll("#tab-ov .card")].map(grab).join("");
+if(SC.length)body+=grab("#tab-cmp > .card");if(last.cmp)body+=grab("#cmpc");
+body+=[...document.querySelectorAll("#tab-tab > .card")].map(grab).join("");
+body+=`<footer class="mu sm"><p>Long Trust Lab · longtrustlab.com · &copy; 2026 Meeks. Released under the MIT License.</p><p>A modeling tool, not financial, tax or legal advice. Results are simulations under stated assumptions, not predictions. Confirm any plan with an estate attorney and tax advisor.</p></footer>`;
+tabs.forEach((t,i)=>t.hidden=hid[i]);oldTh==null?de.removeAttribute("data-theme"):de.setAttribute("data-theme",oldTh);try{draw(last)}catch(e){}
+const css=`body{font:13px/1.45 'Source Sans 3',system-ui,sans-serif;color:#1D232B;background:#fff;max-width:960px;margin:24px auto;padding:0 16px}h2,h3{color:#1D232B}h3{font-size:14px;margin:0 0 6px;padding:6px 8px;background:#F4F6F8;border-bottom:1px solid #D3D8DF}.card{border:1px solid #D3D8DF;margin:0 0 14px;padding:0 0 8px;break-inside:avoid}.card>*:not(h3){margin-left:8px;margin-right:8px}img{display:block;width:calc(100% - 16px);height:auto;max-height:340px;object-fit:contain;break-inside:avoid}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 10px}.k{border:1px solid #D3D8DF;padding:6px 8px}.k .v{font-size:18px;font-weight:600}.k .l,.k .d{font-size:11px;color:#5B6675}table{border-collapse:collapse;width:calc(100% - 16px);font:11px 'Source Code Pro',ui-monospace,monospace}th,td{border-bottom:1px solid #E3E6EA;padding:3px 5px;text-align:right}th:first-child,td:first-child{text-align:left}thead th,tr:first-child th{background:#F4F6F8}.sm{font-size:12px}.mu,.ex{color:#5B6675}.ex{font-size:12px}.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}.tb{margin:0 0 14px}.tb button{font:inherit;padding:6px 14px;background:#1A5FB4;color:#fff;border:0;border-radius:4px;cursor:pointer}@media print{.tb{display:none}body{margin:0;max-width:none}}`;
+return`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Long Trust Lab report</title><link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>${css}</style></head><body><div class="tb"><button onclick="print()">Print or save as PDF</button></div>${body}<script>addEventListener("load",()=>setTimeout(()=>print(),600))<\/script></body></html>`}
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
+$("exp").onclick=()=>{if(!last)return;
+let framed=true;try{framed=window.self!==window.top}catch(e){}
+if(!framed){showTab("ov");$("prh").innerHTML=prHead();setTimeout(()=>window.print(),350);return}
+// Inside a sandboxed frame print dialogs are blocked, so hand over a report file that prints on its own.
+let html;try{html=buildReport()}catch(e){$("st").textContent="Could not build the report.";return}
+const fn="long-trust-lab-report.html";
+if(DL){DL.save({filename:fn,data:html}).then(()=>{$("st").textContent="Saved "+fn+". Open it and it will print (or use Save as PDF)."}).catch(e=>{$("st").textContent=e&&e.code=="declined"?"Report download cancelled.":"Could not save the report."});return}
+try{const b=new Blob([html],{type:"text/html;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);$("st").textContent="Downloaded "+fn+". Open it to print."}catch(e){$("st").textContent="Could not download the report."}};
+// ---- Phone layout: settings slide-over ----
+const isMob=()=>{try{return matchMedia("(max-width:860px)").matches}catch(e){return false}};let pend=false;
+function setOpen(o){document.body.classList.toggle("so",o);$("fab").setAttribute("aria-expanded",o);if(!o&&pend){pend=false;run()}}
+$("fab").onclick=()=>setOpen(true);$("setclose").onclick=()=>{setOpen(false);try{scrollTo({top:0,behavior:"smooth"})}catch(e){}};$("scrim").onclick=()=>setOpen(false);
+document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>{P.ret=+b.dataset.r;P.rtype="nom";if(P.mode=="hist")P.mode="mc";build();run()});
+$("cmpb").onclick=()=>{P.cmp=!P.cmp;cb();run()};
+$("runb").onclick=()=>run();
+$("rst").onclick=()=>{Object.assign(P,DEF);build();run()};
+// ---- Share links: settings are stored in the web address after the # sign ----
+const SHARE_BASE="https://longtrustlab.com/";  // After you host the page, put its public address here, e.g. "https://yourname.github.io/trust/". Leave empty to use the current address.
+const BOOLS=["cmp","cens","ci","runc","btx","lslow","lunc"],ENUMS={mode:MODES,rtype:RTS,dmode:DMODES,taxm:TAXM,wmode:WMODES};
+function shareUrl(){const q=new URLSearchParams();for(const k in DEF){if(P[k]===DEF[k])continue;q.set(k,typeof P[k]=="boolean"?(P[k]?"1":"0"):String(P[k]))}const base=SHARE_BASE||location.href.split("#")[0];return base+(q.toString()?"#"+q.toString():"")}
+function applyHash(){const h=(location.hash||"").slice(1);if(!h)return;new URLSearchParams(h).forEach((v,k)=>{if(!(k in DEF))return;
+if(BOOLS.includes(k))P[k]=v==="1";else if(ENUMS[k]){if(ENUMS[k].some(o=>o[0]==v))P[k]=v}
+else if(k=="a1"||k=="a2")P[k]=v.replace(/[^0-9.,; ]/g,"").slice(0,80);
+else{const c=CFG.find(x=>x[0]==k),n=parseFloat(v);if(c&&isFinite(n))P[k]=Math.min(c[4],Math.max(c[3],n))}})}
+$("shb").onclick=()=>{const u=shareUrl();$("shr").hidden=false;$("shu").value=u;if($("shu").select)$("shu").select();const done=m=>{$("shm").textContent=m};
+try{navigator.clipboard.writeText(u).then(()=>done("Copied to the clipboard."),()=>done("Select the link and copy it."))}catch(e){done("Select the link and copy it.")}
+try{history.replaceState(null,"",u)}catch(e){}};
+// ---- Optional analytics: fill in after you host the page (copy the values from your analytics provider) ----
+// GoatCounter example: {src:"https://gc.zgo.at/count.js",attrs:{"data-goatcounter":"https://YOURCODE.goatcounter.com/count"}}
+// Plausible example:   {src:"https://plausible.io/js/script.js",attrs:{"data-domain":"yourdomain.com",defer:""}}
+const ANALYTICS={src:"",attrs:{}};
+if(ANALYTICS.src){const e=document.createElement("script");e.src=ANALYTICS.src;e.async=true;for(const k in ANALYTICS.attrs)e.setAttribute(k,ANALYTICS.attrs[k]);document.head.appendChild(e);$("anp").textContent=" This site also uses a privacy-focused analytics service that counts page visits."}
+applyHash();
+build();run();
+</script></body></html>
