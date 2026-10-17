@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Long Trust Lab version 2026.10.17.1, built 2026-10-17 11:11 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
 <!-- Long Trust Lab. Copyright (c) 2026 Meeks. Released under the MIT License (see the About section on the page, or the LICENSE file). -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -193,7 +194,7 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 <p>It doesn't give advice, forecast the future or replace a lawyer. It doesn't model the GST tax on non-exempt money, state income tax on the trust itself, changes in tax law, spouses as beneficiaries, or the trustee's discretion to pay more to someone in need. Use it to understand the trade-offs, then take your questions to an estate attorney and a tax advisor.</p>
 </article>
 </section>
-<p class="sm mu">&copy; 2026 Meeks. Released under the MIT License. See "About" below for terms of use.</p>
+<p class="sm mu">&copy; 2026 Meeks. Released under the MIT License. See "About" below for terms of use. <span class="ver"></span></p>
 <p class="sm mu">A modeling tool, not financial, tax or legal advice. Results are simulations under stated assumptions, not predictions. Trust, tax and perpetuity rules vary by state and change over time, so confirm any plan with an estate attorney and tax advisor.</p>
 <details class="card" id="about" style="margin-top:12px"><summary><b>About, method, limits and sources</b></summary>
 <div class="sm" style="margin-top:8px;line-height:1.55">
@@ -237,7 +238,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 </pre>
-<p><b>Version.</b> October 2026.</p></div></details>
+<p><b>Version.</b> <span class="ver"></span></p></div></details>
 
 </main></div></div>
 <button class="p" id="fab" aria-controls="ctl">Settings</button><div class="scrim" id="scrim"></div>
@@ -384,6 +385,9 @@ pool:KY.map(y=>({y,np:hn(poolP[y])/N,nb:hn(poolB[y])/N,nc:hn(poolC[y])/N,p:hps(p
 life:lifeS.filter(l=>hn(recB[l.g])>=20).map(l=>{const nB=hn(recB[l.g]),nC=hn(recC[l.g]);return{g:l.g,nps:nB/N,pot:l.rec[1],alt:hq(recB[l.g],0,.5,nB),zero:recB[l.g][0]/nB,outr:hq(recC[l.g],0,.5,nC),zeroO:nC?recC[l.g][0]/nC:0}}),fin:mdn(vEnd),shC:Array.from(shC,(v,t)=>shN[t]?v/shN[t]:null),endMed:mdn(endCs),endFrac:endCs.filter(v=>v<=H).length/N}}
 return{P:{...P},q,trust,heads,med,life,lifeS,payH,payT,N,H,cmp:cmpOut,one:OD,tot:totA.length?ps(totA):[0,0,0],kpi:kb,cavg:cs.map(a=>Array.from(a,(v,t)=>alive[t]?v/alive[t]:0))}}
 //ENDSIM
+// Version stamp: bump APP_VERSION and APP_BUILT (and the comment at the top of the file) with every release.
+const APP_VERSION="2026.10.17.1",APP_BUILT="2026-10-17 11:11 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
+document.querySelectorAll(".ver").forEach(e=>e.textContent=VER_TXT+".");
 const $=id=>document.getElementById(id);
 try{Chart.defaults.font.family="'Source Sans 3',system-ui,sans-serif";Chart.defaults.font.size=11.5}catch(e){}
 const DEF={fund:10,dist:1.5,ret:7.5,vol:15.5,fee:.5,dy:1.8,qs:85,gf:70,tr:23.8,tro:40.8,tx:.1,fw:.05,infl:2.5,a1:"10, 10",a2:"",dmode:"pct",fx:150000,fl:100000,fc:400000,sy:5,pe:80,kids:1.8,ratio:50,H:250,N:1000,cmp:false,cens:true,ci:false,wmode:"gen",wmin:0,mw:50,senw:100,runc:false,rsd:1.5,sw:100,br:4,bv:6,rho:.1,by:4,btx:false,bq:15,bo:24,bst:0,kt:0,lx:0,hsrc:"jstw",hsv:.5,mode:"mc",rtype:"nom",bage:32.5,cap:0,taxm:"complex",lsd:1.1,ltr:0,ldr:1.5,lhl:14,lrc:.7,lvn:10,lvc:17,ldp:1.3,ldl:32,lslow:true,lunc:true};
@@ -572,7 +576,7 @@ function tRows(id){const el=$(id);if(!el||!el.rows||!el.rows.length)return[];ret
 function setRows(p){const out=[];for(const k in DEF){const c=CFG.find(x=>x[0]==k);const lab=c&&c.length>1?c[1]:({mode:"Return model",rtype:"Return entered as",hsrc:"Historical data",dmode:"Distribution rule",taxm:"Tax calculation",wmode:"Weight shares by",a1:"Children's ages",a2:"Grandchildren's ages",cmp:"Compare trust structures",cens:"Leave out families that die out",ci:"Confidence ranges",runc:"Uncertain average return",btx:"Beneficiary income tax"})[k]||k;
 out.push([lab,typeof p[k]=="boolean"?(p[k]?"on":"off"):p[k],c&&c.length>1?c[2]:""])}return out}
 function buildCsv(r){const R=[],H=r.P.H,G=r.med.map((m,g)=>g).filter(g=>r.med[g].some(v=>v!=null)),rn=v=>v==null||v!==v?"":Math.round(v);
-R.push(["Long Trust Lab results"],["Created",new Date().toISOString().slice(0,10)],["Share link",(()=>{try{return shareUrl()}catch(e){return""}})()],["All dollar amounts are in today's dollars. Results are simulations, not predictions or advice."],[]);
+R.push(["Long Trust Lab results"],["Tool version",VER_TXT],["Created",new Date().toISOString().slice(0,10)],["Share link",(()=>{try{return shareUrl()}catch(e){return""}})()],["All dollar amounts are in today's dollars. Results are simulations, not predictions or advice."],[]);
 R.push(["SETTINGS","Value","Unit"],...setRows(r.P),[]);
 R.push(["SUMMARY"],[$("sum").textContent],["Median trust value at end",rn(r.kpi.fin)],["Chance trust ends below 25% of start",r.kpi.low],["Chance family line dies out",r.kpi.ext],[]);
 R.push(["YEAR BY YEAR","Trust 10th percentile","Trust median","Trust 90th percentile","Living descendants 10th","Living median","Living 90th",...G.map(g=>`Gen ${g+1} median payout per person`)]);
@@ -600,7 +604,7 @@ let body=`<header>${prHead()}</header><p>${esc($("sum").textContent)}</p><div cl
 body+=[...document.querySelectorAll("#tab-ov .card")].map(grab).join("");
 if(SC.length)body+=grab("#tab-cmp > .card");if(last.cmp)body+=grab("#cmpc");
 body+=[...document.querySelectorAll("#tab-tab > .card")].map(grab).join("");
-body+=`<footer class="mu sm"><p>Long Trust Lab · longtrustlab.com · &copy; 2026 Meeks. Released under the MIT License.</p><p>A modeling tool, not financial, tax or legal advice. Results are simulations under stated assumptions, not predictions. Confirm any plan with an estate attorney and tax advisor.</p></footer>`;
+body+=`<footer class="mu sm"><p>Long Trust Lab · longtrustlab.com · ${VER_TXT} ·&copy; 2026 Meeks. Released under the MIT License.</p><p>A modeling tool, not financial, tax or legal advice. Results are simulations under stated assumptions, not predictions. Confirm any plan with an estate attorney and tax advisor.</p></footer>`;
 tabs.forEach((t,i)=>t.hidden=hid[i]);oldTh==null?de.removeAttribute("data-theme"):de.setAttribute("data-theme",oldTh);try{draw(last)}catch(e){}
 const css=`body{font:13px/1.45 'Source Sans 3',system-ui,sans-serif;color:#1D232B;background:#fff;max-width:960px;margin:24px auto;padding:0 16px}h2,h3{color:#1D232B}h3{font-size:14px;margin:0 0 6px;padding:6px 8px;background:#F4F6F8;border-bottom:1px solid #D3D8DF}.card{border:1px solid #D3D8DF;margin:0 0 14px;padding:0 0 8px;break-inside:avoid}.card>*:not(h3){margin-left:8px;margin-right:8px}img{display:block;width:calc(100% - 16px);height:auto;max-height:340px;object-fit:contain;break-inside:avoid}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 10px}.k{border:1px solid #D3D8DF;padding:6px 8px}.k .v{font-size:18px;font-weight:600}.k .l,.k .d{font-size:11px;color:#5B6675}table{border-collapse:collapse;width:calc(100% - 16px);font:11px 'Source Code Pro',ui-monospace,monospace}th,td{border-bottom:1px solid #E3E6EA;padding:3px 5px;text-align:right}th:first-child,td:first-child{text-align:left}thead th,tr:first-child th{background:#F4F6F8}.sm{font-size:12px}.mu,.ex{color:#5B6675}.ex{font-size:12px}.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}.tb{margin:0 0 14px}.tb button{font:inherit;padding:6px 14px;background:#1A5FB4;color:#fff;border:0;border-radius:4px;cursor:pointer}@media print{.tb{display:none}body{margin:0;max-width:none}}`;
 return`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Long Trust Lab report</title><link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"><style>${css}</style></head><body><div class="tb"><button onclick="print()">Print or save as PDF</button></div>${body}<script>addEventListener("load",()=>setTimeout(()=>print(),600))<\/script></body></html>`}
