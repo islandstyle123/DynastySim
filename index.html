@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Long Trust Lab version 2026.10.17.3, built 2026-10-17 21:39 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
+<!-- Long Trust Lab version 2026.10.21.1, built 2026-10-21 12:00 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
 <!-- Long Trust Lab. Copyright (c) 2026 Meeks. Released under the MIT License (see the About section on the page, or the LICENSE file). -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -101,7 +101,7 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 }
 @media(prefers-reduced-motion:reduce){aside{transition:none}}
 @media print{
- body{background:#fff;color:#000}.acts,aside,.bar,.tabbar,#shr,#busy,#fab,.scrim,#exb,#cn,#t3 button,#tab-cmp,#tab-fam,#tab-gd,#about,noscript{display:none!important}
+ body{background:#fff;color:#000}.acts,aside,.bar,.tabbar,#shr,#busy,#fab,.scrim,#exb,#cn,#t3 button,#tab-cmp,#tab-fam,#tab-an,#tab-gd,#about,noscript{display:none!important}
  .top{background:#fff;color:#000;border-bottom:2px solid #000}.bs{color:#444}
  .grid{display:block}main{padding:0}.printonly{display:block}.tab{display:block!important}
  .card,.k,.sumbox{break-inside:avoid;border-color:#bbb}.sc{max-height:none;overflow:visible;border:0}.sc th{position:static}
@@ -110,7 +110,7 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 </style></head><body><noscript><p style="padding:16px">This calculator needs JavaScript. Please enable it in your browser.</p></noscript><div class="wrap">
 <header class="top"><div class="brand"><span class="bt">Long Trust Lab</span><span class="bs">Simulates an irrevocable pot trust that pays all living descendants each year, weighted by generation. All values in today's dollars.</span></div>
 <div class="acts"><button id="shb" title="Builds a link that restores your current settings">Share link</button><button id="exd" title="Spreadsheet-ready file with settings, summary, year-by-year results and tables">Download CSV</button><button id="exp" title="Opens your browser's print dialog; choose Save as PDF to keep a copy">Print report</button><button class="p" id="runb">Run simulations</button></div></header>
-<div class="tabbar"><div class="tabs" role="tablist"><button role="tab" class="on" aria-selected="true" data-t="ov">Overview</button><button role="tab" aria-selected="false" data-t="cmp">Compare</button><button role="tab" aria-selected="false" data-t="fam">One family</button><button role="tab" aria-selected="false" data-t="tab">Tables</button><button role="tab" aria-selected="false" data-t="gd">Guide</button></div><span class="sm mu" id="st"></span></div>
+<div class="tabbar"><div class="tabs" role="tablist"><button role="tab" class="on" aria-selected="true" data-t="ov">Overview</button><button role="tab" aria-selected="false" data-t="cmp">Compare</button><button role="tab" aria-selected="false" data-t="fam">One family</button><button role="tab" aria-selected="false" data-t="tab">Tables</button><button role="tab" aria-selected="false" data-t="an">Solve &amp; sensitivity</button><button role="tab" aria-selected="false" data-t="gd">Guide</button></div><span class="sm mu" id="st"></span></div>
 <div class="grid"><aside><div class="mob"><b>Settings</b><button class="p" id="setclose">Show results</button></div>
 <details id="setd" open><summary>Parameters</summary>
 <div class="bar" style="margin:0 0 8px"><span class="sm mu">Return presets</span><button data-r="5">Conservative 5%</button><button data-r="7.5">Base 7.5%</button><button data-r="8.75">Optimistic 8.75%</button><button id="rst">Reset all</button></div>
@@ -157,6 +157,22 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 <div class="card" style="margin-bottom:12px"><h3>Key years</h3><p class="ex" style="margin:0 0 8px">Snapshots at selected years. The three trust columns are the 10th percentile (a poor outcome), the median (the middle outcome) and the 90th percentile (a strong outcome) across all simulations. Payout columns show what a typical member of each generation receives that year. All in today's dollars.</p><div class="sc"><table id="t1"></table></div></div>
 <div class="card"><h3>Lifetime per member, by generation (real $)</h3><div style="margin-bottom:6px"><select class="in" id="lm"><option value="done">Completed lives only</option><option value="sofar">So far, including people still alive at the end</option></select></div><p class="sm mu" style="margin:0 0 6px">Per-member columns describe individual people across all simulations. Member counts are divided by the number of simulations, so they are averages per simulation. The generation-total percentiles add up everything a generation receives within each simulation and rank only the simulations where that generation has at least one person counted, so the 10th percentile is a poor outcome for a generation that exists. The share of simulations where it has no one counted is shown separately: the family died out or never reached that generation, or (in Completed lives only) none of its members has died by the last simulated year. "Invested" = every payout invested like the trust until death. Completed lives counts only people whose lives end within the simulated years, which understates late generations. So far counts everyone born by the last year, using payouts received up to that point or up to death. Existing family members are counted from today.</p><p class="ex" id="x7" style="margin:0 0 8px"></p><div class="sc"><table id="t2"></table></div></div>
 </section>
+<section class="tab" id="tab-an" role="tabpanel" hidden>
+<div class="card" style="margin-bottom:12px"><h3>Solve for a goal</h3>
+<p class="sm mu" style="margin:0 0 6px">Finds the setting that just meets a goal, keeping every other setting as it is. Each step reruns the simulation with the same families and market histories, so only the setting being solved for changes.</p>
+<div class="bar" style="margin-top:0"><span class="sm">Find the</span><select class="in" id="an_x" aria-label="Setting to solve for"><option value="dist">highest distribution rate</option><option value="fx">highest fixed payout</option><option value="fund">lowest initial funding</option></select><span class="sm">such that</span>
+<select class="in" id="an_goal" aria-label="Goal"><option value="keep">the trust keeps its value</option><option value="pay">a generation gets a payout</option></select></div>
+<div class="bar" id="an_keep"><span class="sm">there is at least a</span><input class="in" id="an_prob" type="number" min="1" max="99" step="1" value="90" style="width:64px" aria-label="Chance, percent"><span class="sm">% chance the trust is worth at least</span><input class="in" id="an_pct" type="number" min="0" max="10000" step="5" value="100" style="width:72px" aria-label="Share of starting value, percent"><span class="sm">% of its starting value (today's dollars)</span></div>
+<div class="bar" id="an_pay" style="display:none"><span class="sm">the median payout per person in generation</span><input class="in" id="an_g" type="number" min="1" max="14" step="1" value="3" style="width:56px" aria-label="Generation"><span class="sm">is at least $</span><input class="in" id="an_amt" type="number" min="1" step="1000" value="50000" style="width:110px" aria-label="Payout, today's dollars"><span class="sm mu">a year (today's dollars)</span></div>
+<div class="bar"><span class="sm">in year</span><input class="in" id="an_y" type="number" min="1" max="300" step="1" value="100" style="width:64px" aria-label="Year"><span class="sm">Paths per run</span><select class="in" id="an_n" aria-label="Paths per run"><option>250</option><option selected>500</option><option>1000</option><option>2000</option></select><button class="p" id="an_go">Solve</button><span class="sm mu" id="an_st" aria-live="polite"></span><span class="err" id="an_e" role="alert"></span></div>
+<div id="an_out" hidden><div class="sumbox" id="an_r" aria-live="polite"></div><div class="bar" style="margin-top:0"><button id="an_ap">Use this value</button><span class="sm mu" id="an_sl"></span></div>
+<div class="ch"><canvas id="c12"></canvas></div><p class="ex" id="x12"></p></div></div>
+<div class="card" style="margin-bottom:12px"><h3>What matters most</h3>
+<p class="sm mu" style="margin:0 0 6px">Moves each setting down and up by a typical amount of uncertainty, one at a time, and shows how far the result moves from your current settings. The longest bars are the settings worth getting right. Trust, investment and tax settings are compared on the same families and market histories. Family settings change which families are drawn, and with them the market histories, so their bars also carry some sampling noise.</p>
+<div class="bar" style="margin-top:0"><span class="sm">Result</span><select class="in" id="tn_m" aria-label="Result to measure"><option value="fin">Median trust value at the end (real)</option><option value="low">Chance it ends below 25% of its starting value</option><option value="ext">Chance the family line dies out</option><option value="rec">Generation 1 lifetime payouts, median (real)</option><option value="p50">Generation 1 payout per year at year 50 (real)</option></select>
+<span class="sm">Paths per run</span><select class="in" id="tn_n" aria-label="Paths per run"><option>250</option><option selected>500</option><option>1000</option><option>2000</option></select><button class="p" id="tn_go">Run sensitivity</button><span class="sm mu" id="tn_st" aria-live="polite"></span><span class="err" id="tn_e" role="alert"></span></div>
+<div id="tn_out" hidden><p class="sm mu" id="tn_sl" style="margin:0 0 6px"></p><div class="ch" id="tn_ch"><canvas id="c13"></canvas></div><p class="ex" id="x13"></p><div class="sc" style="margin-top:8px"><table id="t7"></table></div></div></div>
+</section>
 <section class="tab" id="tab-gd" role="tabpanel" hidden>
 <article class="card gd" style="margin-bottom:12px"><h3>A plain-language guide</h3>
 <h4>What is a dynasty trust?</h4>
@@ -169,7 +185,8 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 <li><b>Describe the family.</b> Under Family, enter the ages of the children (and grandchildren, if any) and how many children each descendant tends to have.</li>
 <li><b>Pick an investment outlook.</b> Use the Conservative, Base or Optimistic buttons at the top of the settings. This is the setting that matters most.</li>
 <li><b>Read the results.</b> Start with the summary sentence and the cards at the top of Overview. Then look at the payout chart to see what each generation might receive.</li>
-<li><b>Try changes.</b> Press Save scenario, change one setting, and compare in the Compare tab. "Generate a random family" shows one possible future in detail.</li></ol>
+<li><b>Try changes.</b> Press Save scenario, change one setting, and compare in the Compare tab. "Generate a random family" shows one possible future in detail.</li>
+<li><b>Ask what it takes.</b> In Solve &amp; sensitivity, "Solve for a goal" finds, for example, the highest payout rate that keeps the trust's value with 90% confidence, or the funding needed for a payout target. "What matters most" shows which settings move the result the most.</li></ol>
 <h4>How to read the results</h4>
 <ul>
 <li><b>Today's dollars.</b> Amounts are adjusted for inflation, so $100,000 in year 80 buys what $100,000 buys today.</li>
@@ -395,7 +412,9 @@ const life=[];for(let g=1;g<=G;g++)if(hn(lr[g])>=20)life.push({g,nps:hn(lr[g])/N
 const lifeS=[];for(let g=1;g<=G;g++)if(hn(lrs[g])>=20)lifeS.push({g,nps:hn(lrs[g])/N,rec:hps(lrs[g]),inv:hps(lis[g]),sr:srs[g]/N,si:sis[g]/N,tr:gq(gtRS[g],gtNS[g]),ti:gq(gtIS[g],gtNS[g]),z:gz(gtNS[g])});
 const fin=col(pots,H-1),y50=Math.min(50,H)-1,kb={fin:fin.length?pc(fin,.5):0,low:fin.length?fin.filter(v=>v<.25*F0).length/fin.length:0,ext:ext/N,rec:(()=>{const l1=life.find(l=>l.g==1);return l1?l1.rec[1]:null})(),y50:y50+1,drag:dsum/(N*H)};
 if(P.ci)kb.ci={fin:fin.length?rci(fin,.5):[NaN,NaN],low:wil(fin.filter(v=>v<.25*F0).length,fin.length),ext:wil(ext,N)};
-if(P.lite)return{kpi:{...kb,p50:0}};
+if(P.lite){const mN=Math.max(20,.05*N),mAt=(g,t)=>{const h=payH[g-1],n=h?payT[g-1][t]:0;return n>=mN?hq(h,t*(NB+1),.5,n):null};let at=null;
+if(P.at){const t=Math.min(H,Math.max(1,Math.round(P.at.y)))-1,c=col(pots,t);at={pay:mAt(Math.min(GM,Math.max(1,P.at.g||1)),t),keep:c.length?c.filter(v=>v>=(P.at.pct||0)/100*F0).length/c.length:0,n:c.length}}
+return{kpi:{...kb,p50:mAt(1,y50)},at}}
 const trust=band(pots,P.ci),heads=band(hc),pbn=band(pben),minN=Math.max(20,.05*N);
 const medH=(HH,TT)=>HH.map((h,g)=>{const o=[];for(let t=0;t<H;t++){const n=h?TT[g][t]:0;o.push(n>=minN?hq(h,t*(NB+1),.5,n):null)}return o});
 const med=medH(payH,payT);
@@ -405,9 +424,42 @@ cmpOut={medB:medH(payH2,payT2),shP:Array.from(shP,(v,t)=>shN[t]?v/shN[t]:null),s
 pool:KY.map(y=>({y,np:hn(poolP[y])/N,nb:hn(poolB[y])/N,nc:hn(poolC[y])/N,p:hps(poolP[y]),b:hps(poolB[y]),c:hps(poolC[y])})),
 life:lifeS.filter(l=>hn(recB[l.g])>=20).map(l=>{const nB=hn(recB[l.g]),nC=hn(recC[l.g]);return{g:l.g,nps:nB/N,pot:l.rec[1],alt:hq(recB[l.g],0,.5,nB),zero:recB[l.g][0]/nB,outr:hq(recC[l.g],0,.5,nC),zeroO:nC?recC[l.g][0]/nC:0}}),fin:mdn(vEnd),shC:Array.from(shC,(v,t)=>shN[t]?v/shN[t]:null),endMed:mdn(endCs),endFrac:endCs.filter(v=>v<=H).length/N}}
 return{P:{...P},q,trust,heads,pbn,med,life,lifeS,payH,payT,N,H,cmp:cmpOut,one:OD,tot:totA.length?ps(totA):[0,0,0],kpi:kb,cavg:cs.map(a=>Array.from(a,(v,t)=>alive[t]?v/alive[t]:0))}}
+// ---- Analysis: "Solve for" (goal seeking) and one-at-a-time sensitivity (tornado). Every run reuses the same seed, so changing a trust,
+// investment or tax setting leaves the families and market histories unchanged. Family settings use the random draws differently, so their runs also see other market histories. prog(done,total) reports progress.
+const anP=(P,n)=>({...P,lite:true,cmp:false,one:false,ci:false,N:n||P.N});
+// Settings the solver can find: search range, log or linear steps, rounding step, and whether the goal measure falls as the setting rises
+// (then the answer is the highest value that meets the goal) or rises (then it is the lowest).
+const SOLVE_X={dist:{lo:.1,hi:10,log:false,st:.01,max:true},fx:{lo:1000,hi:1e7,log:true,st:100,max:true},fund:{lo:1,hi:1000,log:true,st:.1,max:false}};
+function solveFor(P0,S,prog){const X=SOLVE_X[S.x];if(!X)throw new Error("Unknown setting to solve for: "+S.x);
+if(S.goal=="pay"&&S.x!="fund")throw new Error("A payout goal can only be solved for the initial funding.");
+if(S.x=="dist"&&P0.dmode=="fixed"||S.x=="fx"&&P0.dmode!="fixed")throw new Error("That setting is not used by the current distribution rule.");
+const base={...anP(P0,S.n),at:{y:S.y,g:S.g,pct:S.pct}},need=S.goal=="pay"?S.amt:S.prob/100,K=7,B=8,tot=K+B+1,pts=[];let done=0;
+const ev=x=>{const r=sim({...base,[S.x]:x}),m=S.goal=="pay"?r.at.pay||0:r.at.keep;pts.push([x,m]);prog&&prog(++done,tot);return m},ok=m=>m>=need;
+const grid=[...Array(K)].map((_,i)=>X.log?X.lo*Math.pow(X.hi/X.lo,i/(K-1)):X.lo+(X.hi-X.lo)*i/(K-1)),gm=grid.map(ev);
+const out=(status,x,m)=>({status,x,m,need,pts:pts.slice().sort((a,b)=>a[0]-b[0]),lo:X.lo,hi:X.hi,S:{...S}});
+// The same measure at every value means the goal does not depend on this setting, unless it is stuck at 0% or 100% (then it is out of reach or always met, below).
+if(gm.every(m=>m===gm[0])&&(S.goal=="pay"?gm[0]>0:gm[0]>0&&gm[0]<1))return out("flat",null,gm[0]);
+// a meets the goal, b misses it, and they bracket the answer
+let a,b;if(X.max){if(!ok(gm[0]))return out("never",X.lo,gm[0]);const j=gm.findIndex(m=>!ok(m));if(j<0)return out("always",X.hi,gm[K-1]);a=grid[j-1];b=grid[j]}
+else{if(!ok(gm[K-1]))return out("never",X.hi,gm[K-1]);const j=gm.findIndex(ok);if(j==0)return out("always",X.lo,gm[0]);a=grid[j];b=grid[j-1]}
+for(let k=0;k<B;k++){const x=X.log?Math.sqrt(a*b):(a+b)/2;if(ok(ev(x)))a=x;else b=x}
+// Round toward the side that meets the goal, then measure the rounded value so the reported result is exact for it.
+const x=+((X.max?Math.floor(a/X.st+1e-9):Math.ceil(a/X.st-1e-9))*X.st).toFixed(6);return out("ok",x,ev(x))}
+// Inputs the sensitivity chart varies: [key, label, used under these settings?, swing, "pts" = plus or minus the swing, "rel" = plus or minus that share of the value, min, max]
+const TORN=[["ret","Stock return",P=>P.mode!="hist",1,"pts",-5,20],["vol","Stock volatility",P=>P.mode=="mc",3,"pts",0,40],["ldp","Chance of a disaster each year",P=>P.mode=="lay",.5,"pts",0,10],
+["hsv","Allowance for missing markets",P=>P.mode=="hist",.5,"pts",0,1.5],["sw","Share in stocks",P=>true,10,"pts",0,100],["infl","Inflation",P=>P.mode!="hist",1,"pts",0,15],
+["dist","Distribution rate",P=>P.dmode!="fixed",.5,"pts",.1,10],["fx","Fixed payout",P=>P.dmode=="fixed",.25,"rel",0,1e7],["fund","Initial funding",P=>P.dmode=="fixed"||P.dmode=="band",.25,"rel",1,1000],
+["fee","Fees and trustee costs",P=>true,.25,"pts",0,5],["tx","Flat tax drag",P=>P.taxm=="simple",.1,"pts",0,3],["dy","Dividend yield",P=>P.taxm!="simple",.5,"pts",0,6],
+["kids","Children per descendant",P=>true,.3,"pts",.3,3.5],["pe","Share who have children",P=>true,10,"pts",0,100],["bage","Age at childbirth",P=>true,3,"pts",22,45],
+["lx","Life expectancy gain per century",P=>true,2,"pts",0,10],["ratio","Share vs the generation before",P=>P.wmode!="age",10,"pts",10,100]];
+function tornadoInputs(P){return TORN.filter(t=>t[2](P)).map(([k,label,,d,kind,mn,mx])=>{const v=P[k],sw=kind=="rel"?v*d:d,cl=x=>+Math.min(mx,Math.max(mn,x)).toFixed(6);return{k,label,v,lo:cl(v-sw),hi:cl(v+sw)}}).filter(t=>t.lo!=t.v||t.hi!=t.v)}
+function tornado(P0,S,prog){const base=anP(P0,S.n),ins=tornadoInputs(P0),tot=1+ins.reduce((s,t)=>s+(t.lo!=t.v)+(t.hi!=t.v),0);let done=0;
+const ev=o=>{const v=sim({...base,...o}).kpi[S.metric];prog&&prog(++done,tot);return v==null?0:v},b=ev({});
+const rows=ins.map(t=>({...t,vlo:t.lo!=t.v?ev({[t.k]:t.lo}):b,vhi:t.hi!=t.v?ev({[t.k]:t.hi}):b})).sort((x,y)=>Math.abs(y.vlo-b)+Math.abs(y.vhi-b)-Math.abs(x.vlo-b)-Math.abs(x.vhi-b));
+return{base:b,rows,metric:S.metric,S:{...S}}}
 //ENDSIM
 // Version stamp: bump APP_VERSION and APP_BUILT (and the comment at the top of the file) with every release.
-const APP_VERSION="2026.10.17.3",APP_BUILT="2026-10-17 21:39 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
+const APP_VERSION="2026.10.21.1",APP_BUILT="2026-10-21 12:00 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
 document.querySelectorAll(".ver").forEach(e=>e.textContent=VER_TXT+".");
 const $=id=>document.getElementById(id);
 try{Chart.defaults.font.family="'Source Sans 3',system-ui,sans-serif";Chart.defaults.font.size=11.5}catch(e){}
@@ -460,13 +512,17 @@ $("trn").textContent=(P.kt?`Average children per descendant: ${P.kids} today, `+
 function sched(){runId++;if(isMob()&&document.body.classList.contains("so")){pend=true;clearTimeout(T);$("st").textContent="Results update when you press Show results.";return}clearTimeout(T);$("st").textContent="Waiting for changes…";T=setTimeout(run,400)}
 // ---- Background simulation: runs sim() in a Web Worker so the page stays responsive; falls back to the main thread if workers are blocked ----
 const SIMSRC=(()=>{try{const s=document.currentScript.textContent,a=s.indexOf("//SIM"),b=s.indexOf("//ENDSIM");return a>=0&&b>a?s.slice(a,b):""}catch(e){return""}})();
-let W=null,wOK=!!SIMSRC&&typeof Worker=="function",wPend=null,runId=0;
-function mkW(){try{const w=new Worker(URL.createObjectURL(new Blob([SIMSRC+"\nonmessage=e=>{let r;try{r={id:e.data.id,r:sim(e.data.P)}}catch(err){r={id:e.data.id,err:String(err&&err.message||err)}}postMessage(r)};"],{type:"text/javascript"})));
-w.onmessage=e=>{const p=wPend;if(!p||e.data.id!==p.id)return;wPend=null;e.data.err?p.rej(new Error(e.data.err)):p.res(e.data.r)};
-w.onerror=e=>{e.preventDefault&&e.preventDefault();const p=wPend;wPend=null;wOK=false;try{w.terminate()}catch(x){}W=null;if(p){try{p.res(sim(p.P))}catch(x){p.rej(x)}}};return w}catch(e){wOK=false;return null}}
-function simAsync(p){return new Promise((res,rej)=>{if(wPend&&W){try{W.terminate()}catch(e){}W=null;wPend=null}if(wOK&&!W)W=mkW();
-if(!W){setTimeout(()=>{try{res(sim(p))}catch(e){rej(e)}},30);return}wPend={id:runId,P:p,res,rej};W.postMessage({id:runId,P:p})})}
-function run(){const id=++runId,t0=performance.now();$("busy").hidden=false;$("st").textContent="";
+let wOK=!!SIMSRC&&typeof Worker=="function",runId=0;
+const WBODY="\nonmessage=e=>{const d=e.data;let r;try{const pg=(a,b)=>postMessage({id:d.id,prog:[a,b]});r={id:d.id,r:d.fn=='solve'?solveFor(d.P,d.S,pg):d.fn=='torn'?tornado(d.P,d.S,pg):sim(d.P)}}catch(err){r={id:d.id,err:String(err&&err.message||err)}}postMessage(r)};";
+const local=d=>d.fn=="solve"?solveFor(d.P,d.S,d.pg):d.fn=="torn"?tornado(d.P,d.S,d.pg):sim(d.P);
+// A lane holds one worker and its one pending job; a new job on the same lane replaces the pending one.
+function mkW(L){try{const w=new Worker(URL.createObjectURL(new Blob([SIMSRC+WBODY],{type:"text/javascript"})));
+w.onmessage=e=>{const p=L.pend;if(!p||e.data.id!==p.d.id)return;if(e.data.prog){p.pg&&p.pg(...e.data.prog);return}L.pend=null;e.data.err?p.rej(new Error(e.data.err)):p.res(e.data.r)};
+w.onerror=e=>{e.preventDefault&&e.preventDefault();const p=L.pend;L.pend=null;wOK=false;try{w.terminate()}catch(x){}L.w=null;if(p){try{p.res(local({...p.d,pg:p.pg}))}catch(x){p.rej(x)}}};return w}catch(e){wOK=false;return null}}
+function job(L,d,pg){return new Promise((res,rej)=>{if(L.pend&&L.w){try{L.w.terminate()}catch(e){}L.w=null;L.pend=null}if(wOK&&!L.w)L.w=mkW(L);
+if(!L.w){setTimeout(()=>{try{res(local({...d,pg}))}catch(e){rej(e)}},30);return}L.pend={d,res,rej,pg};L.w.postMessage(d)})}
+const WM={w:null,pend:null},WA={w:null,pend:null},simAsync=p=>job(WM,{id:runId,P:p});
+function run(){anStale();const id=++runId,t0=performance.now();$("busy").hidden=false;$("st").textContent="";
 simAsync({...P}).then(r=>{if(id!==runId)return;last=r;draw(last);if(famSeed)genFamily(famSeed);$("st").textContent=`${r.N} paths in ${((performance.now()-t0)/1000).toFixed(1)}s`},e=>{if(id===runId)$("st").textContent="The simulation failed: "+(e&&e.message||e)}).finally(()=>{if(id===runId)$("busy").hidden=true})}
 function draw(r){const k=r.kpi,b=base&&base.kpi;
 {const F0=r.P.fund*1e6,H=r.P.H,t=r.trust,l=H-1;$("sum").textContent=`Starting with ${f$(F0)} and paying ${dTxt(r.P)}, the middle outcome after ${H} years is about ${f$(k.fin)} in today's dollars (the middle 80% of outcomes run from ${f$(t[0][l])} to ${f$(t[2][l])}). The chance it ends below a quarter of its starting value is ${pt(k.low)}${r.P.cens?" among families still alive":""}, and ${pt(k.ext)} of simulated family lines die out. ${k.p50>0?"A first-generation beneficiary typically receives about "+f$(k.p50)+" a year at year "+k.y50+".":""}${P.ci&&k.ci?` The median's 95% range from the number of simulations alone is ${f$(k.ci.fin[0])} to ${f$(k.ci.fin[1])}.`:""}`}
@@ -492,7 +548,7 @@ const ky=[10,25,50,100,150,200,250,300].filter(y=>y<=P.H),kg=r.med.map((m,g)=>g)
 const cit=(k,y)=>P.ci&&r.trust.ci?`<br><span class="sm mu">${f$(r.trust.ci[k][0][y-1])} to ${f$(r.trust.ci[k][1][y-1])}</span>`:"";
 $("t1").innerHTML="<tr><th>Year</th><th>Trust 10th</th><th>Trust median</th><th>Trust 90th</th><th>Living (median)</th>"+kg.map(g=>`<th>Gen ${g+1} payout</th>`).join("")+"</tr>"+
 ky.map(y=>`<tr><td>${y}</td><td>${f$(r.trust[0][y-1])}${cit(0,y)}</td><td>${f$(r.trust[1][y-1])}${cit(1,y)}</td><td>${f$(r.trust[2][y-1])}${cit(2,y)}</td><td>${nz(r.heads[1][y-1])}</td>${kg.map(g=>`<td>${r.med[g][y-1]==null?"-":f$(r.med[g][y-1])}</td>`).join("")}</tr>`).join("");
-lifeTable(r);cmp();drawT(r);cmpDraw(r);explain(r)}
+lifeTable(r);cmp();drawT(r);cmpDraw(r);explain(r);anSync();anDraw();tnDraw()}
 const SC=[],PAL=["#1f77b4","#e8832a","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf","#393b79","#ad494a","#637939","#a55194"],zz=a=>a.map(v=>v>0?v:null);
 const cst=()=>{const c=getComputedStyle(document.documentElement);return{mu:c.getPropertyValue("--mu").trim(),bd:c.getPropertyValue("--bd").trim(),ac:c.getPropertyValue("--ac").trim()}};
 const mkc=(id,cfg)=>{ch[id]&&ch[id].destroy();ch[id]=new Chart($(id),cfg)};
@@ -641,6 +697,56 @@ let html;try{html=buildReport()}catch(e){$("st").textContent="Could not build th
 const fn="long-trust-lab-report.html";
 if(DL){DL.save({filename:fn,data:html}).then(()=>{$("st").textContent="Saved "+fn+". Open it and it will print (or use Save as PDF)."}).catch(e=>{$("st").textContent=e&&e.code=="declined"?"Report download cancelled.":"Could not save the report."});return}
 try{const b=new Blob([html],{type:"text/html;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);$("st").textContent="Downloaded "+fn+". Open it to print."}catch(e){$("st").textContent="Could not download the report."}};
+// ---- Solve & sensitivity tab: goal seeking and the tornado chart, run on their own worker so the main results stay live ----
+let anRes=null,tnRes=null,anId=0,tnId=0,anKey="",tnKey="";
+const pKey=()=>JSON.stringify(P),SXL={dist:"distribution rate",fx:"fixed payout",fund:"initial funding"},
+sxF=(x,v)=>x=="dist"?(+v).toFixed(2)+"%":x=="fund"?f$(v*1e6):f$(v),
+TNM={fin:["median trust value at the end",f$],low:["chance it ends below 25% of its starting value",pt],ext:["chance the family line dies out",pt],rec:["generation 1 lifetime payouts (median)",f$],p50:["generation 1 payout per year at year 50",f$]},
+tnV=(k,v)=>k=="dist"||k=="ret"||k=="vol"||k=="infl"||k=="fee"||k=="tx"||k=="dy"||k=="ldp"||k=="sw"||k=="pe"||k=="ratio"?v+"%":k=="hsv"?v+" pts":k=="fund"?f$(v*1e6):k=="fx"?f$(v):k=="lx"?v+" yrs":String(v),
+vline={id:"vline",afterDatasetsDraw(c,_,o){if(!o||o.v==null)return;const s=o.ax=="y"?c.scales.y:c.scales.x,a=c.chartArea,g=c.ctx,q=s.getPixelForValue(o.v);g.save();g.strokeStyle=o.c;g.lineWidth=1.5;g.setLineDash([4,3]);g.beginPath();if(o.ax=="y"){g.moveTo(a.left,q);g.lineTo(a.right,q)}else{g.moveTo(q,a.top);g.lineTo(q,a.bottom)}g.stroke();g.restore()}};
+function anSync(){const pay=$("an_goal").value=="pay",fixed=P.dmode=="fixed";$("an_keep").style.display=pay?"none":"";$("an_pay").style.display=pay?"":"none";
+[...$("an_x").options].forEach(o=>o.disabled=pay?o.value!="fund":o.value=="dist"?fixed:o.value=="fx"?!fixed:false);
+if($("an_x").selectedOptions[0].disabled)$("an_x").value=[...$("an_x").options].find(o=>!o.disabled).value}
+function anStale(){const m="Settings have changed since this was run. Run it again to update.";if(anRes)$("an_sl").textContent=pKey()==anKey?"":m;if(tnRes)$("tn_sl").textContent=pKey()==tnKey?"":m}
+function anSpec(){const n=(id,lo,hi)=>{const v=Number($(id).value);return $(id).value.trim()!==""&&isFinite(v)&&v>=lo&&v<=hi?v:null},S={x:$("an_x").value,goal:$("an_goal").value,y:n("an_y",1,300),n:+$("an_n").value};
+if(S.y==null||!Number.isInteger(S.y))return"Enter a whole year from 1 to 300.";if(S.y>P.H)return`Year ${S.y} is past the ${P.H} years simulated.`;
+if(S.goal=="keep"){S.prob=n("an_prob",1,99);S.pct=n("an_pct",0,10000);if(S.prob==null)return"Enter a chance from 1% to 99%.";if(S.pct==null)return"Enter a share of the starting value from 0% to 10,000%."}
+else{S.g=n("an_g",1,GM);S.amt=n("an_amt",1,1e9);if(S.g==null||!Number.isInteger(S.g))return`Enter a generation from 1 to ${GM}.`;if(S.amt==null)return"Enter a payout of at least $1."}return S}
+$("an_goal").onchange=anSync;
+$("an_go").onclick=()=>{const S=anSpec();$("an_e").textContent=typeof S=="string"?S:"";if(typeof S=="string")return;const id=++anId,t0=performance.now(),key=pKey();$("an_go").disabled=true;$("an_st").textContent="Starting…";
+job(WA,{id:"an"+id,fn:"solve",P:{...P},S},(d,t)=>{if(id==anId)$("an_st").textContent=`Run ${d} of ${t}…`}).then(r=>{if(id!=anId)return;anRes=r;anKey=key;$("an_st").textContent=`Done in ${((performance.now()-t0)/1000).toFixed(1)}s.`;anDraw();anStale()},
+e=>{if(id==anId){$("an_st").textContent="";$("an_e").textContent="The solver failed: "+(e&&e.message||e)}}).finally(()=>{if(id==anId)$("an_go").disabled=false})};
+$("tn_go").onclick=()=>{const id=++tnId,t0=performance.now(),key=pKey(),S={metric:$("tn_m").value,n:+$("tn_n").value};$("tn_e").textContent="";$("tn_go").disabled=true;$("tn_st").textContent="Starting…";
+job(WA,{id:"tn"+id,fn:"torn",P:{...P},S},(d,t)=>{if(id==tnId)$("tn_st").textContent=`Run ${d} of ${t}…`}).then(r=>{if(id!=tnId)return;tnRes=r;tnKey=key;$("tn_st").textContent=`Done in ${((performance.now()-t0)/1000).toFixed(1)}s.`;tnDraw();anStale()},
+e=>{if(id==tnId){$("tn_st").textContent="";$("tn_e").textContent="The sensitivity run failed: "+(e&&e.message||e)}}).finally(()=>{if(id==tnId)$("tn_go").disabled=false})};
+$("an_ap").onclick=()=>{if(!anRes||anRes.x==null)return;const k=anRes.S.x;P[k]=anRes.x;build();anSync();run();$("an_sl").textContent=`Set the ${SXL[k]} to ${sxF(k,anRes.x)}. The main results are updating.`};
+function anDraw(){const r=anRes;if(!r){$("an_out").hidden=true;return}$("an_out").hidden=false;const S=r.S,x=S.x,pay=S.goal=="pay",fm=v=>pay?f$(v):pt(v),
+goal=pay?`the median payout per person in generation ${S.g} in year ${S.y} is at least ${f$(S.amt)}`:`there is at least a ${S.prob}% chance the trust is worth at least ${S.pct}% of its starting value in year ${S.y}`,
+got=v=>pay?`generation ${S.g}'s median payout per person in year ${S.y} is ${f$(v)}`:`${pt(v)} of simulations${P.cens?" (families still alive)":""} have the trust worth at least ${S.pct}% of its starting value in year ${S.y}`,
+best=SOLVE_X[x].max?"highest":"lowest";
+$("an_r").textContent=r.status=="ok"?`The ${best} ${SXL[x]} such that ${goal} is about ${sxF(x,r.x)}. At that value, ${got(r.m)}.`:
+r.status=="never"?`No ${SXL[x]} in the range searched (${sxF(x,r.lo)} to ${sxF(x,r.hi)}) meets the goal. Even at ${sxF(x,r.x)}, ${got(r.m)}.`:
+r.status=="always"?`The goal is met across the whole range searched, so the ${best} ${SXL[x]} is ${sxF(x,r.x)}, the end of that range. There, ${got(r.m)}.`:
+`This goal does not depend on the ${SXL[x]} with the current settings: ${got(r.m)} at every value tried, so the goal is ${r.m>=r.need?"met":"missed"} whatever the ${SXL[x]}. With a percentage-of-value payout, the trust grows in proportion to its size, so its value relative to the start does not change with the funding.`;
+$("an_ap").hidden=r.status!="ok";
+$("x12").textContent=`Each point is one run of ${S.n.toLocaleString()} paths. The dashed line is the goal. Answers carry sampling noise from the number of paths, so try more paths per run before relying on one. Every other setting stays as it is.`;
+const c=cst(),a2=getComputedStyle(document.documentElement).getPropertyValue("--ac2").trim(),lg=x!="dist",pts=r.pts.map(([px,m])=>({x:px,y:m}));
+mkc("c12",{type:"line",data:{datasets:[{label:"Goal measure",data:pts,borderColor:c.ac,backgroundColor:c.ac,borderWidth:2,pointRadius:3,pointHoverRadius:5},
+...(r.status=="ok"?[{label:"Answer",data:[{x:r.x,y:r.m}],borderColor:a2,backgroundColor:a2,pointRadius:6,pointHoverRadius:7,showLine:false}]:[])]},
+options:{responsive:true,maintainAspectRatio:false,animation:false,parsing:false,interaction:{mode:"nearest",intersect:false},plugins:{vline:{v:r.need,c:c.mu,ax:"y"},legend:{labels:{color:c.mu,boxWidth:12}},tooltip:{callbacks:{title:it=>SXL[x][0].toUpperCase()+SXL[x].slice(1)+": "+sxF(x,it[0].parsed.x),label:q=>q.dataset.label+": "+fm(q.parsed.y)}}},
+scales:{x:{type:lg?"logarithmic":"linear",title:{display:true,text:SXL[x][0].toUpperCase()+SXL[x].slice(1),color:c.mu},ticks:{color:c.mu,callback:v=>sxF(x,v)},grid:{color:c.bd}},
+y:{...(pay?{}:{min:0,max:1}),ticks:{color:c.mu,callback:v=>fm(v)},grid:{color:c.bd}}}},plugins:[vline]})}
+function tnDraw(){const r=tnRes;if(!r){$("tn_out").hidden=true;return}$("tn_out").hidden=false;const[ml,fm]=TNM[r.metric],pc=r.metric=="low"||r.metric=="ext",
+dl=v=>pc?((v-r.base)*100>=0?"+":"")+((v-r.base)*100).toFixed(1)+" pts":r.base?((v/r.base-1)*100>=0?"+":"")+((v/r.base-1)*100).toFixed(0)+"%":"",
+rows=r.rows,lgx=!pc&&r.base>0&&rows.every(t=>t.vlo>0&&t.vhi>0),c=cst(),a2=getComputedStyle(document.documentElement).getPropertyValue("--ac2").trim(),lab=t=>`${t.label} (${t.lo!=t.v?tnV(t.k,t.lo):"–"} / ${t.hi!=t.v?tnV(t.k,t.hi):"–"})`;
+$("tn_ch").style.height=Math.max(220,rows.length*30+70)+"px";
+const top=rows.filter(t=>t.vlo!=r.base||t.vhi!=r.base).slice(0,3).map(t=>t.label.toLowerCase());
+$("x13").textContent=`With your settings the ${ml} is ${fm(r.base)} (dashed line), from ${r.S.n.toLocaleString()} paths per run. `+(top.length?`The settings that move it most are ${top.join(", ").replace(/, ([^,]*)$/," and $1")}. `:"")+`Each bar shows the result with that one setting moved down (first color) or up (second color); labels show the two values tried.`+(lgx?" The scale is logarithmic, so equal bar lengths mean equal percentage changes.":"");
+mkc("c13",{type:"bar",data:{labels:rows.map(lab),datasets:[{label:"Setting moved down",data:rows.map(t=>t.lo!=t.v?[r.base,t.vlo]:null),backgroundColor:c.ac,borderRadius:2,borderSkipped:false},{label:"Setting moved up",data:rows.map(t=>t.hi!=t.v?[r.base,t.vhi]:null),backgroundColor:a2,borderRadius:2,borderSkipped:false}]},
+options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,animation:false,categoryPercentage:.8,barPercentage:.9,plugins:{vline:{v:r.base,c:c.mu,ax:"x"},legend:{labels:{color:c.mu,boxWidth:12}},
+tooltip:{callbacks:{label:q=>{const t=rows[q.dataIndex],v=q.datasetIndex?t.vhi:t.vlo;return`${q.dataset.label} to ${tnV(t.k,q.datasetIndex?t.hi:t.lo)}: ${fm(v)} (${dl(v)})`}}}},
+scales:{x:{type:lgx?"logarithmic":"linear",ticks:{color:c.mu,maxRotation:0,callback:v=>{if(!lgx)return fm(v);const m=v/Math.pow(10,Math.floor(Math.log10(v)+1e-9));return[1,2,5].some(k=>Math.abs(m-k)<1e-6)?fm(v):""}},grid:{color:c.bd}},y:{ticks:{color:c.mu,autoSkip:false},grid:{display:false}}}},plugins:[vline]});
+$("t7").innerHTML=`<tr><th>Setting</th><th>Now</th><th>Lower</th><th>Result</th><th>Higher</th><th>Result</th></tr>`+rows.map(t=>`<tr><td>${t.label}</td><td>${tnV(t.k,t.v)}</td><td>${t.lo!=t.v?tnV(t.k,t.lo):"-"}</td><td>${t.lo!=t.v?fm(t.vlo)+" ("+dl(t.vlo)+")":"-"}</td><td>${t.hi!=t.v?tnV(t.k,t.hi):"-"}</td><td>${t.hi!=t.v?fm(t.vhi)+" ("+dl(t.vhi)+")":"-"}</td></tr>`).join("")}
 // ---- Phone layout: settings slide-over ----
 const isMob=()=>{try{return matchMedia("(max-width:860px)").matches}catch(e){return false}};let pend=false;
 function setOpen(o){document.body.classList.toggle("so",o);$("fab").setAttribute("aria-expanded",o);if(!o&&pend){pend=false;run()}}

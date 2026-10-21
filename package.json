@@ -1,0 +1,11 @@
+{
+  "name": "long-trust-lab",
+  "private": true,
+  "description": "Tests for the Long Trust Lab simulator (the app itself is index.html and needs no build).",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "update-golden": "UPDATE_GOLDEN=1 node --test test/golden.test.js"
+  },
+  "engines": { "node": ">=18" }
+}
