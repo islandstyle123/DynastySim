@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Long Trust Lab version 2026.10.21.1, built 2026-10-21 12:00 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
+<!-- Long Trust Lab version 2026.10.28.4, built 2026-10-28 11:38 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
 <!-- Long Trust Lab. Copyright (c) 2026 Meeks. Released under the MIT License (see the About section on the page, or the LICENSE file). -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -80,6 +80,7 @@ th{color:var(--mu);font:600 11.5px var(--sans);background:var(--head)}
 details.card>summary{cursor:pointer}
 main,.tab,.card{min-width:0}main{overflow-x:clip}
 .printonly{display:none}
+.tipbox{display:flex;flex-wrap:wrap;align-items:center;gap:3px 14px;font-size:12px;margin:6px 0 0;padding:6px 8px;border:1px solid var(--bd);border-radius:3px;background:var(--head);min-height:46px}.tipbox>b:first-child{flex-basis:100%}.tipbox .ti{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.tipbox i{display:inline-block;width:14px;height:0;border-top:3px solid}.tipbox i.dot{border-top-style:dotted}
 .gd{font-size:14px;line-height:1.6}.gd>*:not(h3){max-width:78ch}.gd h4{font:700 15px/1.3 var(--sans);margin:18px 0 6px}.gd h3+h4{margin-top:4px}.gd p,.gd ul,.gd ol,.gd dl{margin:0 0 8px}.gd ul,.gd ol{padding-left:20px}.gd li{margin:0 0 4px}.gd dt{font-weight:700;margin-top:8px}.gd dd{margin:0 0 0 16px}
 #fab,.mob,.scrim{display:none}
 @media(max-width:860px){
@@ -101,7 +102,7 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 }
 @media(prefers-reduced-motion:reduce){aside{transition:none}}
 @media print{
- body{background:#fff;color:#000}.acts,aside,.bar,.tabbar,#shr,#busy,#fab,.scrim,#exb,#cn,#t3 button,#tab-cmp,#tab-fam,#tab-an,#tab-gd,#about,noscript{display:none!important}
+ body{background:#fff;color:#000}.acts,aside,.bar,.tabbar,#shr,#busy,#fab,.scrim,#exb,#cn,#t3 button,#tab-cmp,#tab-fam,#tab-an,#tab-gd,.tipbox,#about,noscript{display:none!important}
  .top{background:#fff;color:#000;border-bottom:2px solid #000}.bs{color:#444}
  .grid{display:block}main{padding:0}.printonly{display:block}.tab{display:block!important}
  .card,.k,.sumbox{break-inside:avoid;border-color:#bbb}.sc{max-height:none;overflow:visible;border:0}.sc th{position:static}
@@ -128,7 +129,7 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 <div class="card"><h3>Trust value, real (median, 10th to 90th percentile)</h3><div class="ch"><canvas id="c1"></canvas></div><p class="ex" id="x1"></p></div>
 <div class="card"><h3>Trust value per beneficiary, real (median, 10th to 90th percentile)</h3><div class="ch"><canvas id="c11"></canvas></div><p class="ex" id="x11"></p></div>
 <div class="card"><h3>Living descendants</h3><div class="ch"><canvas id="c2"></canvas></div><p class="ex" id="x2"></p></div>
-<div class="card"><h3>Median annual payout per person, real $, by generation (hover a year for beneficiary counts)</h3><div class="ch"><canvas id="c3"></canvas></div><p class="ex" id="x3"></p></div></div>
+<div class="card"><h3>Median annual payout per person by generation, and the typical average for all beneficiaries (dotted), real $ (hover a year for details below the chart)</h3><div class="ch"><canvas id="c3"></canvas></div><div class="tipbox" id="c3tip" aria-live="polite"></div><p class="ex" id="x3"></p></div></div>
 <div class="card" style="margin-bottom:12px"><h3>Payout target</h3><div class="bar" style="margin-top:0"><span class="sm">Generation</span><input class="in" id="tg" type="number" min="1" max="14" step="1" value="2" style="width:60px"><span class="sm">annual payout per person of at least $</span><input class="in" id="ta" type="number" min="0" step="1000" value="50000" style="width:110px"><span class="sm mu">(real dollars)</span><span class="err" id="te" role="alert"></span></div><div class="ch"><canvas id="c6"></canvas></div><p class="ex" id="x6"></p><div class="sc" style="margin-top:8px"><table id="t4"></table></div></div>
 </section>
 <section class="tab" id="tab-cmp" role="tabpanel" hidden>
@@ -318,7 +319,7 @@ WG=[...Array(GM+1)].map((_,g0)=>Array.from({length:GM+1},(_,g)=>Math.max(ratio**
 segs=(g,by,b,f)=>{if(!AGE)return[[b,f,WT[g]]];const out=[];let s=b;for(const[lim,w]of[[by+18,mwv],[by+65,1],[1e9,swv]]){if(s>=f)break;const e=Math.min(f,Math.max(lim,s));if(e>s){out.push([s,e,w]);s=e}}return out};
 const bq=P.bq/100,bo=P.bo/100,bl=P.btx?tq*bq+(1-tq)*bo+(P.bst||0)/100:0,aft=pr=>bl>0&&pr>0?1-Math.min(1,dy/pr)*bl:1;
 const pots=new Float32Array(N*H),pben=new Float32Array(N*H),hc=new Float32Array(N*H),payH=[...Array(GM)].map(()=>null),payT=[...Array(GM)].map(()=>null),addP=(HH,TT,gi,t,v)=>{if(!HH[gi]){HH[gi]=new Uint16Array(H*(NB+1));TT[gi]=new Uint16Array(H)}HH[gi][t*(NB+1)+hb(v)]++;TT[gi][t]++};
-const mkH=()=>[...Array(G+1)].map(()=>new Uint32Array(NB+1)),lr=mkH(),li=mkH(),sr=Array(G+1).fill(0),si=Array(G+1).fill(0),lrs=mkH(),lis=mkH(),srs=Array(G+1).fill(0),sis=Array(G+1).fill(0),gtA=()=>[...Array(G+1)].map(()=>new Float64Array(N)),gtR=gtA(),gtI=gtA(),gtRS=gtA(),gtIS=gtA(),gtN=gtA(),gtNS=gtA(),gq=(v,n)=>{const a=[];for(let k=0;k<N;k++)if(n[k]>0)a.push(v[k]);return a.length?ps(a):null},gz=n=>{let z=0;for(let k=0;k<N;k++)if(!(n[k]>0))z++;return z/N},cs=[...Array(GM)].map(()=>new Float64Array(H));let ext=0,dsum=0;const alive=new Float64Array(H),totA=[];const CM=!!P.cmp,KY=[25,50,100,150,200,250,300].filter(y=>y<=H),poolP={},poolB={},poolC={},shC=new Float64Array(H),recC=mkH(),endCs=[],shP=new Float64Array(H),shB=new Float64Array(H),shN=new Float64Array(H),payH2=[...Array(GM)].map(()=>null),payT2=[...Array(GM)].map(()=>null),recB=mkH(),vEnd=[];KY.forEach(y=>{poolP[y]=new Uint32Array(NB+1);poolB[y]=new Uint32Array(NB+1);poolC[y]=new Uint32Array(NB+1)});
+const mkH=()=>[...Array(G+1)].map(()=>new Uint32Array(NB+1)),lr=mkH(),li=mkH(),sr=Array(G+1).fill(0),si=Array(G+1).fill(0),lrs=mkH(),lis=mkH(),srs=Array(G+1).fill(0),sis=Array(G+1).fill(0),gtA=()=>[...Array(G+1)].map(()=>new Float64Array(N)),gtR=gtA(),gtI=gtA(),gtRS=gtA(),gtIS=gtA(),gtN=gtA(),gtNS=gtA(),gq=(v,n)=>{const a=[];for(let k=0;k<N;k++)if(n[k]>0)a.push(v[k]);return a.length?ps(a):null},gz=n=>{let z=0;for(let k=0;k<N;k++)if(!(n[k]>0))z++;return z/N},cs=[...Array(GM)].map(()=>new Float64Array(H));let ext=0,dsum=0;const alive=new Float64Array(H),totA=[],mpv=new Float32Array(N*H).fill(NaN);const CM=!!P.cmp,KY=[25,50,100,150,200,250,300].filter(y=>y<=H),poolP={},poolB={},poolC={},shC=new Float64Array(H),recC=mkH(),endCs=[],shP=new Float64Array(H),shB=new Float64Array(H),shN=new Float64Array(H),payH2=[...Array(GM)].map(()=>null),payT2=[...Array(GM)].map(()=>null),recB=mkH(),vEnd=[];KY.forEach(y=>{poolP[y]=new Uint32Array(NB+1);poolB[y]=new Uint32Array(NB+1);poolC[y]=new Uint32Array(NB+1)});
 const OD=P.one?{pay:[...Array(GM)].map(()=>new Float32Array(H).fill(NaN)),v0:new Float64Array(H),D:new Float64Array(H),earn:new Float64Array(H),fee:new Float64Array(H),tax:new Float64Array(H),v1:new Float64Array(H),gr:new Float64Array(H),dfl:new Float64Array(H),bt:new Float64Array(H)}:null;const pa=x=>String(x||'').split(/[\s,;]+/).filter(v=>v!=='').map(Number).filter(v=>isFinite(v)&&v>=0&&v<100).slice(0,20);let AG1=pa(P.a1),AG2=pa(P.a2);if(!AG1.length&&!AG2.length)AG1=[10,10];
 for(let i=0;i<N;i++){
 const fy=FAM?fsdv*gauss():0;let FT=null;if(FUN){FT=new Float64Array(H);const sl=P.fls/100,L=sl*gauss()-sl*sl/2,be=Math.pow(.5,1/30),se=.1*Math.sqrt(1-be*be);let e=.1*gauss();for(let t=0;t<H;t++){FT[t]=Math.exp(L+e-.005);e=be*e+se*gauss()}}
@@ -358,6 +359,7 @@ D[t]=tw[t]>0?Math.min(dx,pot):0;
 const pr=pot>0?D[t]/pot:0,dg=P.taxm=="simple"?tx:Math.max(dy-pr,0)*(tq*tr+(1-tq)*tro)+Math.max(pr-dy,0)*gf*tr+fwE;dsum+=dg;AF[t]=aft(pr);nf[t]=Math.max(gr[t]-fee-dg,0);
 if(OD){const a=pot-D[t];OD.v0[t]=pot;OD.D[t]=D[t];OD.earn[t]=a*(gr[t]-1);OD.fee[t]=a*fee;OD.tax[t]=a*dg;OD.v1[t]=a*nf[t];OD.gr[t]=gr[t]-1;OD.dfl[t]=dfl[t];OD.bt[t]=D[t]*(1-AF[t])}
 pot=(pot-D[t])*nf[t];win.push(pot);pots[i*H+t]=pot/dfl[t];
+if(ec[t]>0&&tw[t]>0)mpv[i*H+t]=D[t]/dfl[t]*AF[t]/ec[t];// this simulation's average payout per eligible beneficiary
 for(let g=1;g<=GM;g++)if(cn[g][t]>0&&tw[t]>0){const v=D[t]*(AGE?gws[g][t]/cn[g][t]:WG[G0[t]][g])/tw[t]/dfl[t]*AF[t];addP(payH,payT,g-1,t,v);if(OD)OD.pay[g-1][t]=v}}
 {let tp=0;for(let t=0;t<H;t++)tp+=D[t]/dfl[t]*AF[t];if(!P.cens||P.one||hc[i*H+H-1]>0)totA.push(tp)}
 if(OD){OD.living=Array.from(hc.slice(0,H));OD.ec=Array.from(ec);OD.lcn=lcn.map(a=>Array.from(a));OD.people=gs.map((g,j)=>[j+1,g,bs[j],ds[j],pi[j]>=0?pi[j]+1:0])}
@@ -423,7 +425,7 @@ let cmpOut=null;if(CM){const pctl=a=>{const s=Float64Array.from(a).sort();return
 cmpOut={medB:medH(payH2,payT2),shP:Array.from(shP,(v,t)=>shN[t]?v/shN[t]:null),shB:Array.from(shB,(v,t)=>shN[t]?v/shN[t]:null),
 pool:KY.map(y=>({y,np:hn(poolP[y])/N,nb:hn(poolB[y])/N,nc:hn(poolC[y])/N,p:hps(poolP[y]),b:hps(poolB[y]),c:hps(poolC[y])})),
 life:lifeS.filter(l=>hn(recB[l.g])>=20).map(l=>{const nB=hn(recB[l.g]),nC=hn(recC[l.g]);return{g:l.g,nps:nB/N,pot:l.rec[1],alt:hq(recB[l.g],0,.5,nB),zero:recB[l.g][0]/nB,outr:hq(recC[l.g],0,.5,nC),zeroO:nC?recC[l.g][0]/nC:0}}),fin:mdn(vEnd),shC:Array.from(shC,(v,t)=>shN[t]?v/shN[t]:null),endMed:mdn(endCs),endFrac:endCs.filter(v=>v<=H).length/N}}
-return{P:{...P},q,trust,heads,pbn,med,life,lifeS,payH,payT,N,H,cmp:cmpOut,one:OD,tot:totA.length?ps(totA):[0,0,0],kpi:kb,cavg:cs.map(a=>Array.from(a,(v,t)=>alive[t]?v/alive[t]:0))}}
+return{P:{...P},q,trust,heads,pbn,med,life,lifeS,payH,payT,N,H,cmp:cmpOut,one:OD,tot:totA.length?ps(totA):[0,0,0],kpi:kb,cavg:cs.map(a=>Array.from(a,(v,t)=>alive[t]?v/alive[t]:0)),mpay:Array.from({length:H},(_,t)=>{const c=col(mpv,t);return c.length>=minN&&pc(c,.5)>0?pc(c,.5):null})}}
 // ---- Analysis: "Solve for" (goal seeking) and one-at-a-time sensitivity (tornado). Every run reuses the same seed, so changing a trust,
 // investment or tax setting leaves the families and market histories unchanged. Family settings use the random draws differently, so their runs also see other market histories. prog(done,total) reports progress.
 const anP=(P,n)=>({...P,lite:true,cmp:false,one:false,ci:false,N:n||P.N});
@@ -459,7 +461,7 @@ const rows=ins.map(t=>({...t,vlo:t.lo!=t.v?ev({[t.k]:t.lo}):b,vhi:t.hi!=t.v?ev({
 return{base:b,rows,metric:S.metric,S:{...S}}}
 //ENDSIM
 // Version stamp: bump APP_VERSION and APP_BUILT (and the comment at the top of the file) with every release.
-const APP_VERSION="2026.10.21.1",APP_BUILT="2026-10-21 12:00 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
+const APP_VERSION="2026.10.28.4",APP_BUILT="2026-10-28 11:38 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
 document.querySelectorAll(".ver").forEach(e=>e.textContent=VER_TXT+".");
 const $=id=>document.getElementById(id);
 try{Chart.defaults.font.family="'Source Sans 3',system-ui,sans-serif";Chart.defaults.font.size=11.5}catch(e){}
@@ -536,14 +538,18 @@ const cs=getComputedStyle(document.documentElement),mu=cs.getPropertyValue("--mu
 const lg=$("lg").checked,yrs=[...Array(P.H)].map((_,i)=>i+1),z=a=>a.map(v=>v>0?v:null);
 const pal=["#1f77b4","#e8832a","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2"];
 const mk=(id,sets,o={})=>{ch[id]&&ch[id].destroy();ch[id]=new Chart($(id),{type:"line",data:{labels:yrs,datasets:sets},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
-elements:{point:{radius:0},line:{borderWidth:2}},plugins:{legend:{labels:{color:mu,boxWidth:12,filter:i=>i.text!==""}},tooltip:{callbacks:{label:o.lab||(c=>c.dataset.label+": "+(o.num?Math.round(c.parsed.y):f$(c.parsed.y))),footer:o.foot}}},
+elements:{point:{radius:0},line:{borderWidth:2}},plugins:{legend:{labels:{color:mu,boxWidth:12,filter:i=>i.text!==""}},tooltip:o.ext?{enabled:false,external:o.ext}:{callbacks:{label:o.lab||(c=>c.dataset.label+": "+(o.num?Math.round(c.parsed.y):f$(c.parsed.y))),footer:o.foot}}},
 scales:{x:{ticks:{color:mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:bd}},y:{type:lg?"logarithmic":"linear",ticks:{color:mu,callback:v=>o.num?v:f$(v)},grid:{color:bd}}}}})};
 const bandS=(x,c,n)=>[{label:"10th pct",data:z(x[0]),borderColor:c+"55",borderWidth:1,fill:false},{label:"90th pct",data:z(x[2]),borderColor:c+"55",borderWidth:1,backgroundColor:c+"22",fill:"-1"},{label:n,data:z(x[1]),borderColor:c}];
 const s1=bandS(r.trust,ac,"Median");if(base)s1.push({label:"Baseline median",data:z(base.trust.slice(0,P.H)),borderColor:a2,borderDash:[6,4],borderWidth:1.5});
 if(P.ci&&r.trust.ci)s1.push({label:"Median, 95% range",data:z(r.trust.ci[1][0]),borderColor:a2+"99",borderWidth:1,fill:false},{label:"",data:z(r.trust.ci[1][1]),borderColor:a2+"99",borderWidth:1,backgroundColor:a2+"55",fill:"-1"});
 s1.push({label:"Starting value",data:yrs.map(()=>P.fund*1e6),borderColor:mu,borderDash:[2,3],borderWidth:1});
 mk("c1",s1);mk("c2",bandS(r.heads,"#2ca02c","Median"),{num:1});mk("c11",bandS(r.pbn,"#9467bd","Median"));
-mk("c3",r.med.map((m,g)=>({label:"Gen "+(g+1),gen:g,data:m,borderColor:PAL[g],spanGaps:false})).filter(d=>d.data.some(v=>v!=null)),{lab:q=>"Gen "+(q.dataset.gen+1)+": "+f$(q.parsed.y)+" each, "+r.cavg[q.dataset.gen][q.dataIndex].toFixed(1)+" beneficiaries",foot:it=>"All generations: "+r.cavg.reduce((a,x)=>a+x[it[0].dataIndex],0).toFixed(1)+" beneficiaries (average per simulation)"});
+mk("c3",[...r.med.map((m,g)=>({label:"Gen "+(g+1),gen:g,data:m,borderColor:PAL[g],spanGaps:false})).filter(d=>d.data.some(v=>v!=null)),{label:"Average, all beneficiaries (median)",avg:1,data:r.mpay,borderColor:mu,borderDash:[2,4],borderWidth:2.5,spanGaps:false}],{lab:q=>q.dataset.avg?"Average per beneficiary, all generations (median across simulations): "+f$(q.parsed.y):"Gen "+(q.dataset.gen+1)+": "+f$(q.parsed.y)+" each, "+r.cavg[q.dataset.gen][q.dataIndex].toFixed(1)+" beneficiaries",foot:it=>"All generations: "+r.cavg.reduce((a,x)=>a+x[it[0].dataIndex],0).toFixed(1)+" beneficiaries (average per simulation)",
+// Hover details for this chart go in the box below it instead of over the lines; the last year hovered stays shown.
+ext:({tooltip:tt})=>{const el=$("c3tip");if(!tt||tt.opacity===0||!tt.dataPoints||!tt.dataPoints.length)return;const i=tt.dataPoints[0].dataIndex,pts=tt.dataPoints.filter(p=>p.parsed.y!=null);
+el.innerHTML=`<b>Year ${i+1}</b>`+pts.map(p=>{const d=p.dataset;return`<span class="ti"><i class="${d.avg?"dot":""}" style="border-top-color:${d.borderColor}"></i>${d.avg?"Average per beneficiary, all generations (median across simulations)":"Gen "+(d.gen+1)}: <b>${f$(p.parsed.y)}</b>${d.avg?"":" each, "+r.cavg[d.gen][i].toFixed(1)+" beneficiaries"}</span>`}).join("")+`<span class="ti mu">All generations: ${r.cavg.reduce((a,x)=>a+x[i],0).toFixed(1)} beneficiaries (average per simulation)</span>`}});
+$("c3tip").textContent="Hover over the chart, or tap it, to see each line's value for that year here.";
 const ky=[10,25,50,100,150,200,250,300].filter(y=>y<=P.H),kg=r.med.map((m,g)=>g).filter(g=>ky.some(y=>r.med[g][y-1]!=null));
 const cit=(k,y)=>P.ci&&r.trust.ci?`<br><span class="sm mu">${f$(r.trust.ci[k][0][y-1])} to ${f$(r.trust.ci[k][1][y-1])}</span>`:"";
 $("t1").innerHTML="<tr><th>Year</th><th>Trust 10th</th><th>Trust median</th><th>Trust 90th</th><th>Living (median)</th>"+kg.map(g=>`<th>Gen ${g+1} payout</th>`).join("")+"</tr>"+
@@ -645,7 +651,7 @@ $("x1").textContent=`In the middle simulation the trust is worth ${f$(t[1][y-1])
 {const b=r.pbn;$("x11").textContent=`The trust's value divided by the number of family members eligible for payouts that year, in today's dollars: roughly what each person's share would be if the trust were split equally. In the middle simulation it is ${f$(b[1][0])} per person after the first year, ${f$(b[1][y-1])} after ${y} years and ${f$(b[1][H-1])} after ${H} years. In 1 out of 10 simulations it ends below ${f$(b[0][H-1])}, and in 1 out of 10 above ${f$(b[2][H-1])}. `+(b[1][H-1]<b[1][0]?"The middle line falls over time, so the family is growing faster than the trust.":"The middle line rises over time, so the trust is growing faster than the family.")+(r.P.cens?" Families that have died out are left out.":"")}
 $("x2").textContent=`A typical family has ${hv(hd[1][y-1])} living descendants after ${y} years and ${hv(hd[1][H-1])} after ${H} years. In 1 out of 10 simulations it has ${hv(hd[0][H-1])} or fewer${r.P.cens?" (counting only families still alive)":""}, and ${pt(k.ext)} of simulated family lines die out completely. A bigger family means each person's share is smaller.`;
 const gl=r.med.map((m,g)=>[g,m[y5-1]]).filter(x=>x[1]!=null).slice(0,4).map(x=>`generation ${x[0]+1} about ${f$(x[1])}`);
-$("x3").textContent=`Each line is what a typical member of one generation receives in a year, in today's dollars${r.P.btx?", after beneficiary income tax":""}. At year ${y5}: ${gl.length?gl.join(", "):"no generation has enough data yet"}. `+(r.P.wmode=="age"?"Shares depend on age, not generation, so generations differ mainly because their members are different ages.":`Each person gets ${(100/r.P.ratio).toFixed(2)} times the share of a person in the next generation${r.P.wmin>0?`, but no less than ${r.P.wmin}% of the share of the most senior generation still receiving payouts`:""}.`)+" A line starts once enough simulations include that generation and ends when it has mostly died out. Hover a year to see how many beneficiaries each generation has.";
+$("x3").textContent=`Each line is what a typical member of one generation receives in a year, in today's dollars${r.P.btx?", after beneficiary income tax":""}. At year ${y5}: ${gl.length?gl.join(", "):"no generation has enough data yet"}. `+(r.P.wmode=="age"?"Shares depend on age, not generation, so generations differ mainly because their members are different ages.":`Each person gets ${(100/r.P.ratio).toFixed(2)} times the share of a person in the next generation${r.P.wmin>0?`, but no less than ${r.P.wmin}% of the share of the most senior generation still receiving payouts`:""}.`)+" A line starts once enough simulations include that generation and ends when it has mostly died out. The dotted line is the typical average payout per beneficiary across all generations: in each simulation, everything paid out that year divided by everyone eligible to receive it, and the line shows the middle (median) of those averages"+(r.mpay[y5-1]!=null?` (${f$(r.mpay[y5-1])} at year ${y5})`:"")+". Hover over a year to see each line's value and how many beneficiaries each generation has, in the box below the chart.";
 const L=$("lm").value=="sofar"?r.lifeS:r.life,l1=L.find(l=>l.g==1),l3=L.find(l=>l.g==3);
 $("x7").textContent=(l1?`A typical generation 1 member receives ${f$(l1.rec[1])} over their lifetime${r.P.btx?" after tax":""}`+(l3?`, and a typical generation 3 member ${f$(l3.rec[1])}`:"")+". The range from the 10th to the 90th percentile shows how much luck in markets and family size matters. ":"")+"\"Invested\" shows what those payouts would grow to by the person's death if they invested each one like the trust."}
 function explainT(g,Y,pr,al,H){const ys=[50,100,150,200].filter(y=>y<=H&&pr[y-1]!=null);
@@ -659,8 +665,8 @@ function buildCsv(r){const R=[],H=r.P.H,G=r.med.map((m,g)=>g).filter(g=>r.med[g]
 R.push(["Long Trust Lab results"],["Tool version",VER_TXT],["Created",new Date().toISOString().slice(0,10)],["Share link",(()=>{try{return shareUrl()}catch(e){return""}})()],["All dollar amounts are in today's dollars. Results are simulations, not predictions or advice."],[]);
 R.push(["SETTINGS","Value","Unit"],...setRows(r.P),[]);
 R.push(["SUMMARY"],[$("sum").textContent],["Median trust value at end",rn(r.kpi.fin)],["Chance trust ends below 25% of start",r.kpi.low],["Chance family line dies out",r.kpi.ext],[]);
-R.push(["YEAR BY YEAR","Trust 10th percentile","Trust median","Trust 90th percentile","Living descendants 10th","Living median","Living 90th","Trust value per beneficiary 10th","Trust value per beneficiary median","Trust value per beneficiary 90th",...G.map(g=>`Gen ${g+1} median payout per person`)]);
-for(let t=0;t<H;t++)R.push([t+1,rn(r.trust[0][t]),rn(r.trust[1][t]),rn(r.trust[2][t]),rn(r.heads[0][t]),rn(r.heads[1][t]),rn(r.heads[2][t]),rn(r.pbn[0][t]),rn(r.pbn[1][t]),rn(r.pbn[2][t]),...G.map(g=>rn(r.med[g][t]))]);
+R.push(["YEAR BY YEAR","Trust 10th percentile","Trust median","Trust 90th percentile","Living descendants 10th","Living median","Living 90th","Trust value per beneficiary 10th","Trust value per beneficiary median","Trust value per beneficiary 90th","Average payout per beneficiary, all generations (median across simulations)",...G.map(g=>`Gen ${g+1} median payout per person`)]);
+for(let t=0;t<H;t++)R.push([t+1,rn(r.trust[0][t]),rn(r.trust[1][t]),rn(r.trust[2][t]),rn(r.heads[0][t]),rn(r.heads[1][t]),rn(r.heads[2][t]),rn(r.pbn[0][t]),rn(r.pbn[1][t]),rn(r.pbn[2][t]),rn(r.mpay[t]),...G.map(g=>rn(r.med[g][t]))]);
 R.push([]);
 const sec=(n,id)=>{const rows=tRows(id);if(rows.length)R.push([n],...rows,[])};
 sec("LIFETIME PER MEMBER ("+($("lm").value=="sofar"?"so far":"completed lives")+")","t2");sec("PAYOUT TARGET","t4");sec("SAVED SCENARIOS","t3");if(r.cmp){sec("TRUST STRUCTURES: RECIPIENTS AND PAYOUTS","t5");sec("TRUST STRUCTURES: LIFETIME","t6")}
@@ -678,7 +684,7 @@ de.setAttribute("data-theme","light");tabs.forEach(t=>t.hidden=false);
 try{draw(last);Object.entries(ch).forEach(([id,c])=>{if(!c)return;c.resize();c.update("none");const cv=$(id);if(!cv||!cv.width||!cv.height)return;const o=document.createElement("canvas");o.width=cv.width;o.height=cv.height;const x=o.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,o.width,o.height);x.drawImage(cv,0,0);imgs[id]=o.toDataURL("image/png")})}catch(e){}
 const grab=sel=>{const n=typeof sel=="string"?document.querySelector(sel):sel;if(!n)return"";const c=n.cloneNode(true);
 c.querySelectorAll("canvas").forEach(cv=>{const im=document.createElement("img");if(imgs[cv.id])im.src=imgs[cv.id];im.alt="Chart";cv.closest(".ch")?cv.closest(".ch").replaceWith(im):cv.replaceWith(im)});
-c.querySelectorAll("input,select,button,textarea,.err,[hidden]").forEach(e=>{if(e.tagName=="INPUT"&&e.id=="tg")e.replaceWith(String(e.value));else if(e.tagName=="INPUT"&&e.id=="ta")e.replaceWith(Number(e.value).toLocaleString());else if(e.tagName=="SELECT")e.replaceWith(e.options[e.selectedIndex]?e.options[e.selectedIndex].text+": ":"");else e.remove()});
+c.querySelectorAll("input,select,button,textarea,.err,.tipbox,[hidden]").forEach(e=>{if(e.tagName=="INPUT"&&e.id=="tg")e.replaceWith(String(e.value));else if(e.tagName=="INPUT"&&e.id=="ta")e.replaceWith(Number(e.value).toLocaleString());else if(e.tagName=="SELECT")e.replaceWith(e.options[e.selectedIndex]?e.options[e.selectedIndex].text+": ":"");else e.remove()});
 c.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));c.removeAttribute("id");c.querySelectorAll("[style]").forEach(e=>{e.style.maxHeight="";e.style.overflow=""});return c.outerHTML};
 let body=`<header>${prHead()}</header><p>${esc($("sum").textContent)}</p><div class="kpis">${$("kpis").innerHTML}</div><p class="mu sm">${esc($("cn").textContent)}</p>`;
 body+=[...document.querySelectorAll("#tab-ov .card")].map(grab).join("");
