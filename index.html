@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Long Trust Lab version 2026.10.28.5, built 2026-10-28 11:48 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
+<!-- Long Trust Lab version 2026.10.29.1, built 2026-10-29 12:00 UTC. Keep in step with APP_VERSION and APP_BUILT in the script below. -->
 <!-- Long Trust Lab. Copyright (c) 2026 Meeks. Released under the MIT License (see the About section on the page, or the LICENSE file). -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -94,7 +94,8 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
  body.so #fab{display:none}
  .wrap{padding-bottom:80px}
  .bs{display:none}.acts{margin-left:0}
- .ch{height:230px}
+ .ch{height:230px}.ch.tall{height:340px}
+ .tipbox .ti{white-space:normal;align-items:baseline}.tipbox i{flex-shrink:0}
  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.k .v{font-size:19px}
  .tabbar{overflow-x:auto}.tabs button{white-space:nowrap}#st{display:none}
  .sc{max-height:440px}
@@ -129,7 +130,7 @@ main,.tab,.card{min-width:0}main{overflow-x:clip}
 <div class="card"><h3>Trust value, real (median, 10th to 90th percentile)</h3><div class="ch"><canvas id="c1"></canvas></div><p class="ex" id="x1"></p></div>
 <div class="card"><h3>Trust value per beneficiary, real (median, 10th to 90th percentile)</h3><div class="ch"><canvas id="c11"></canvas></div><p class="ex" id="x11"></p></div>
 <div class="card"><h3>Living descendants</h3><div class="ch"><canvas id="c2"></canvas></div><p class="ex" id="x2"></p></div>
-<div class="card"><h3>Median annual payout per person by generation, and the typical average for all beneficiaries (dotted), real $ (hover a year for details below the chart)</h3><div class="ch"><canvas id="c3"></canvas></div><div class="tipbox" id="c3tip" aria-live="polite"></div><p class="ex" id="x3"></p></div></div>
+<div class="card"><h3>Median annual payout per person by generation, and the typical average for all beneficiaries (dotted), real $ (hover a year for details below the chart)</h3><div class="ch tall"><canvas id="c3"></canvas></div><div class="tipbox" id="c3tip" aria-live="polite"></div><p class="ex" id="x3"></p></div></div>
 <div class="card" style="margin-bottom:12px"><h3>Payout target</h3><div class="bar" style="margin-top:0"><span class="sm">Generation</span><input class="in" id="tg" type="number" min="1" max="14" step="1" value="2" style="width:60px"><span class="sm">annual payout per person of at least $</span><input class="in" id="ta" type="number" min="0" step="1000" value="50000" style="width:110px"><span class="sm mu">(real dollars)</span><span class="err" id="te" role="alert"></span></div><div class="ch"><canvas id="c6"></canvas></div><p class="ex" id="x6"></p><div class="sc" style="margin-top:8px"><table id="t4"></table></div></div>
 </section>
 <section class="tab" id="tab-cmp" role="tabpanel" hidden>
@@ -320,7 +321,7 @@ segs=(g,by,b,f)=>{if(!AGE)return[[b,f,WT[g]]];const out=[];let s=b;for(const[lim
 const bq=P.bq/100,bo=P.bo/100,bl=P.btx?tq*bq+(1-tq)*bo+(P.bst||0)/100:0,aft=pr=>bl>0&&pr>0?1-Math.min(1,dy/pr)*bl:1,
 // "Invested" payouts: always taxed on receipt (the dividend-funded part, at the beneficiary rates) and then grown in the same portfolio with all dividends and interest taxed each year at those rates (gains are untaxed: held until death).
 blP=tq*bq+(1-tq)*bo+(P.bst||0)/100,aftP=pr=>pr>0?1-Math.min(1,dy/pr)*blP:1,dgP=dy*blP+fwE;
-const pots=new Float32Array(N*H),pben=new Float32Array(N*H),hc=new Float32Array(N*H),payH=[...Array(GM)].map(()=>null),payT=[...Array(GM)].map(()=>null),addP=(HH,TT,gi,t,v)=>{if(!HH[gi]){HH[gi]=new Uint16Array(H*(NB+1));TT[gi]=new Uint16Array(H)}HH[gi][t*(NB+1)+hb(v)]++;TT[gi][t]++};
+const pots=new Float32Array(N*H),clr=new Float32Array(N*H),pben=new Float32Array(N*H),hc=new Float32Array(N*H),payH=[...Array(GM)].map(()=>null),payT=[...Array(GM)].map(()=>null),addP=(HH,TT,gi,t,v)=>{if(!HH[gi]){HH[gi]=new Uint16Array(H*(NB+1));TT[gi]=new Uint16Array(H)}HH[gi][t*(NB+1)+hb(v)]++;TT[gi][t]++};
 const mkH=()=>[...Array(G+1)].map(()=>new Uint32Array(NB+1)),lr=mkH(),li=mkH(),sr=Array(G+1).fill(0),si=Array(G+1).fill(0),lrs=mkH(),lis=mkH(),srs=Array(G+1).fill(0),sis=Array(G+1).fill(0),gtA=()=>[...Array(G+1)].map(()=>new Float64Array(N)),gtR=gtA(),gtI=gtA(),gtRS=gtA(),gtIS=gtA(),gtN=gtA(),gtNS=gtA(),gq=(v,n)=>{const a=[];for(let k=0;k<N;k++)if(n[k]>0)a.push(v[k]);return a.length?ps(a):null},gz=n=>{let z=0;for(let k=0;k<N;k++)if(!(n[k]>0))z++;return z/N},cs=[...Array(GM)].map(()=>new Float64Array(H));let ext=0,dsum=0;const alive=new Float64Array(H),totA=[],mpv=new Float32Array(N*H).fill(NaN);const CM=!!P.cmp,KY=[25,50,100,150,200,250,300].filter(y=>y<=H),poolP={},poolB={},poolC={},shC=new Float64Array(H),recC=mkH(),endCs=[],shP=new Float64Array(H),shB=new Float64Array(H),shN=new Float64Array(H),payH2=[...Array(GM)].map(()=>null),payT2=[...Array(GM)].map(()=>null),recB=mkH(),vEnd=[];KY.forEach(y=>{poolP[y]=new Uint32Array(NB+1);poolB[y]=new Uint32Array(NB+1);poolC[y]=new Uint32Array(NB+1)});
 const OD=P.one?{pay:[...Array(GM)].map(()=>new Float32Array(H).fill(NaN)),v0:new Float64Array(H),D:new Float64Array(H),earn:new Float64Array(H),fee:new Float64Array(H),tax:new Float64Array(H),v1:new Float64Array(H),gr:new Float64Array(H),dfl:new Float64Array(H),bt:new Float64Array(H)}:null;const pa=x=>String(x||'').split(/[\s,;]+/).filter(v=>v!=='').map(Number).filter(v=>isFinite(v)&&v>=0&&v<100).slice(0,20);let AG1=pa(P.a1),AG2=pa(P.a2);if(!AG1.length&&!AG2.length)AG1=[10,10];
 for(let i=0;i<N;i++){
@@ -354,6 +355,7 @@ const ii=Math.max(-.08,infl+INFP*(ip-infl)+INFS*gauss()+(cr?.01:0));ip=ii;ia[t]=
 gr[t]=wS>=1?sx:wS*sx+(1-wS)*Math.exp(mub+(ii-infl)+sgb*(rh*z+rr*gauss()));
 dv=be*dv+sw2*(-rc*z+rq*gauss());cr=cr?rnd()>.35:rnd()<.08;if(P.lslow)lv=.94*lv+LSV*.3412*gauss();cp*=1+ia[t];dfl[t]=cp}}
 else for(let t=0;t<H;t++){if(P.mode=="hist"){if(hs<0||hp>=HL[hs]){let k=Math.floor(rnd()*HT);hs=0;while(k>=HL[hs]){k-=HL[hs];hs++}hp=k}const S=HS[hs],j=hp;let se=(1+S[0][j]/100)*HAD;hp++;if(WP&&rnd()<WIPE){se=0;hp=1e9}gr[t]=wS*se+(1-wS)*(1+S[1][j]/100);ia[t]=S[2][j]/100}else{ia[t]=infl;if(P.mode=="simple")gr[t]=wS*(1+gp)+(1-wS)*(1+bn);else{const z1=gauss(),sx=Math.exp(mu2+sg2*z1);gr[t]=wS>=1?sx:wS*sx+(1-wS)*Math.exp(mub+sgb*(rh*z1+rr*gauss()))}}cp*=1+ia[t];dfl[t]=cp}
+{let c=0;for(let t=0;t<H;t++){c+=Math.log(Math.max(1e-12,gr[t]/(1+ia[t])));clr[i*H+t]=c}}
 let pot=F0;const D=new Float64Array(H),nf=new Float64Array(H),win=[F0],AF=new Float64Array(H),PR=new Float64Array(H);
 for(let t=0;t<H;t++){
 let dx=rate*pot;if(P.dmode=="fixed")dx=fx*dfl[t];else if(P.dmode=="band")dx=Math.min(Math.max(rate*pot,fl*dfl[t]),fc*dfl[t]);else if(P.dmode=="smooth"){const n=Math.min(win.length,Math.max(1,Math.round(P.sy)));dx=rate*win.slice(-n).reduce((x,y)=>x+y)/n}
@@ -422,7 +424,9 @@ if(P.ci)kb.ci={fin:fin.length?rci(fin,.5):[NaN,NaN],low:wil(fin.filter(v=>v<.25*
 if(P.lite){const mN=Math.max(20,.05*N),mAt=(g,t)=>{const h=payH[g-1],n=h?payT[g-1][t]:0;return n>=mN?hq(h,t*(NB+1),.5,n):null};let at=null;
 if(P.at){const t=Math.min(H,Math.max(1,Math.round(P.at.y)))-1,c=col(pots,t);at={pay:mAt(Math.min(GM,Math.max(1,P.at.g||1)),t),keep:c.length?c.filter(v=>v>=(P.at.pct||0)/100*F0).length/c.length:0,n:c.length}}
 return{kpi:{...kb,p50:mAt(1,y50)},at}}
-const trust=band(pots,P.ci),heads=band(hc),pbn=band(pben),minN=Math.max(20,.05*N);
+// Average yearly real return (compounded from year 1, before fees, taxes and payouts) of the simulation sitting at each trust-value percentile in each year; same ranks as band().
+const bandRet=A=>{const o=[[],[],[]],ix=new Uint32Array(N);for(let t=0;t<H;t++){let n=0;for(let i=0;i<N;i++)if(A[i*H+t]==A[i*H+t])ix[n++]=i;const s=ix.subarray(0,n).sort((a,b)=>A[a*H+t]-A[b*H+t]);[.1,.5,.9].forEach((p,k)=>o[k].push(n?Math.exp(clr[s[Math.min(n-1,Math.floor(p*n))]*H+t]/(t+1))-1:null))}return o};
+const trust=Object.assign(band(pots,P.ci),{ret:bandRet(pots)}),heads=band(hc),pbn=band(pben),minN=Math.max(20,.05*N);
 const medH=(HH,TT)=>HH.map((h,g)=>{const o=[];for(let t=0;t<H;t++){const n=h?TT[g][t]:0;o.push(n>=minN?hq(h,t*(NB+1),.5,n):null)}return o});
 const med=medH(payH,payT);
 kb.p50=med[0][y50]||null;
@@ -466,7 +470,7 @@ const rows=ins.map(t=>({...t,vlo:t.lo!=t.v?ev({[t.k]:t.lo}):b,vhi:t.hi!=t.v?ev({
 return{base:b,rows,metric:S.metric,S:{...S}}}
 //ENDSIM
 // Version stamp: bump APP_VERSION and APP_BUILT (and the comment at the top of the file) with every release.
-const APP_VERSION="2026.10.28.5",APP_BUILT="2026-10-28 11:48 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
+const APP_VERSION="2026.10.29.1",APP_BUILT="2026-10-29 12:00 UTC",VER_TXT=`Version ${APP_VERSION}, built ${APP_BUILT}`;
 document.querySelectorAll(".ver").forEach(e=>e.textContent=VER_TXT+".");
 const $=id=>document.getElementById(id);
 try{Chart.defaults.font.family="'Source Sans 3',system-ui,sans-serif";Chart.defaults.font.size=11.5}catch(e){}
@@ -543,17 +547,18 @@ const cs=getComputedStyle(document.documentElement),mu=cs.getPropertyValue("--mu
 const lg=$("lg").checked,yrs=[...Array(P.H)].map((_,i)=>i+1),z=a=>a.map(v=>v>0?v:null);
 const pal=["#1f77b4","#e8832a","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2"];
 const mk=(id,sets,o={})=>{ch[id]&&ch[id].destroy();ch[id]=new Chart($(id),{type:"line",data:{labels:yrs,datasets:sets},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:"index",intersect:false},
-elements:{point:{radius:0},line:{borderWidth:2}},plugins:{legend:{labels:{color:mu,boxWidth:12,filter:i=>i.text!==""}},tooltip:o.ext?{enabled:false,external:o.ext}:{callbacks:{label:o.lab||(c=>c.dataset.label+": "+(o.num?Math.round(c.parsed.y):f$(c.parsed.y))),footer:o.foot}}},
-scales:{x:{ticks:{color:mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:bd}},y:{type:lg?"logarithmic":"linear",ticks:{color:mu,callback:v=>o.num?v:f$(v)},grid:{color:bd}}}}})};
+elements:{point:{radius:0},line:{borderWidth:2}},plugins:{legend:{labels:{color:mu,boxWidth:isMob()?8:12,padding:isMob()?6:10,font:isMob()?{size:10.5}:undefined,filter:i=>i.text!==""}},tooltip:o.ext?{enabled:false,external:o.ext}:{callbacks:{label:o.lab||(c=>c.dataset.label+": "+(o.num?Math.round(c.parsed.y):f$(c.parsed.y))),footer:o.foot}}},
+scales:{x:{ticks:{color:mu,autoSkip:false,maxRotation:0,callback:YT},grid:{color:bd}},y:{type:lg?"logarithmic":"linear",ticks:{color:mu,callback:v=>{if(lg){const m=v/Math.pow(10,Math.floor(Math.log10(v)+1e-9));if(!(isMob()?[1]:[1,2,5]).some(k=>Math.abs(m-k)<1e-6))return""}return o.num?v:f$(v)}},grid:{color:bd}}}}})};
 const bandS=(x,c,n)=>[{label:"10th pct",data:z(x[0]),borderColor:c+"55",borderWidth:1,fill:false},{label:"90th pct",data:z(x[2]),borderColor:c+"55",borderWidth:1,backgroundColor:c+"22",fill:"-1"},{label:n,data:z(x[1]),borderColor:c}];
 const s1=bandS(r.trust,ac,"Median");if(base)s1.push({label:"Baseline median",data:z(base.trust.slice(0,P.H)),borderColor:a2,borderDash:[6,4],borderWidth:1.5});
 if(P.ci&&r.trust.ci)s1.push({label:"Median, 95% range",data:z(r.trust.ci[1][0]),borderColor:a2+"99",borderWidth:1,fill:false},{label:"",data:z(r.trust.ci[1][1]),borderColor:a2+"99",borderWidth:1,backgroundColor:a2+"55",fill:"-1"});
 s1.push({label:"Starting value",data:yrs.map(()=>P.fund*1e6),borderColor:mu,borderDash:[2,3],borderWidth:1});
-mk("c1",s1);mk("c2",bandS(r.heads,"#2ca02c","Median"),{num:1});mk("c11",bandS(r.pbn,"#9467bd","Median"));
+const rI={"10th pct":0,Median:1,"90th pct":2},rV=(k,i)=>{const v=r.trust.ret?r.trust.ret[k][i]:null;return v==null||v!==v?"":` (return ${(v*100).toFixed(1)}%/yr)`};
+mk("c1",s1,{lab:c=>c.dataset.label+": "+f$(c.parsed.y)+(c.dataset.label in rI?rV(rI[c.dataset.label],c.dataIndex):"")});mk("c2",bandS(r.heads,"#2ca02c","Median"),{num:1});mk("c11",bandS(r.pbn,"#9467bd","Median"));
 mk("c3",[...r.med.map((m,g)=>({label:"Gen "+(g+1),gen:g,data:m,borderColor:PAL[g],spanGaps:false})).filter(d=>d.data.some(v=>v!=null)),{label:"Average, all beneficiaries (median)",avg:1,data:r.mpay,borderColor:mu,borderDash:[2,4],borderWidth:2.5,spanGaps:false}],{lab:q=>q.dataset.avg?"Average per beneficiary, all generations (median across simulations): "+f$(q.parsed.y):"Gen "+(q.dataset.gen+1)+": "+f$(q.parsed.y)+" each, "+r.cavg[q.dataset.gen][q.dataIndex].toFixed(1)+" beneficiaries",foot:it=>"All generations: "+r.cavg.reduce((a,x)=>a+x[it[0].dataIndex],0).toFixed(1)+" beneficiaries (average per simulation)",
 // Hover details for this chart go in the box below it instead of over the lines; the last year hovered stays shown.
 ext:({tooltip:tt})=>{const el=$("c3tip");if(!tt||tt.opacity===0||!tt.dataPoints||!tt.dataPoints.length)return;const i=tt.dataPoints[0].dataIndex,pts=tt.dataPoints.filter(p=>p.parsed.y!=null);
-el.innerHTML=`<b>Year ${i+1}</b>`+pts.map(p=>{const d=p.dataset;return`<span class="ti"><i class="${d.avg?"dot":""}" style="border-top-color:${d.borderColor}"></i>${d.avg?"Average per beneficiary, all generations (median across simulations)":"Gen "+(d.gen+1)}: <b>${f$(p.parsed.y)}</b>${d.avg?"":" each, "+r.cavg[d.gen][i].toFixed(1)+" beneficiaries"}</span>`}).join("")+`<span class="ti mu">All generations: ${r.cavg.reduce((a,x)=>a+x[i],0).toFixed(1)} beneficiaries (average per simulation)</span>`}});
+el.innerHTML=`<b>Year ${i+1}</b>`+pts.map(p=>{const d=p.dataset;return`<span class="ti"><i class="${d.avg?"dot":""}" style="border-top-color:${d.borderColor}"></i><span>${d.avg?"Average per beneficiary, all generations (median across simulations)":"Gen "+(d.gen+1)}: <b>${f$(p.parsed.y)}</b>${d.avg?"":" each, "+r.cavg[d.gen][i].toFixed(1)+" beneficiaries"}</span></span>`}).join("")+`<span class="ti mu">All generations: ${r.cavg.reduce((a,x)=>a+x[i],0).toFixed(1)} beneficiaries (average per simulation)</span>`}});
 $("c3tip").textContent="Hover over the chart, or tap it, to see each line's value for that year here.";
 const ky=[10,25,50,100,150,200,250,300].filter(y=>y<=P.H),kg=r.med.map((m,g)=>g).filter(g=>ky.some(y=>r.med[g][y-1]!=null));
 const cit=(k,y)=>P.ci&&r.trust.ci?`<br><span class="sm mu">${f$(r.trust.ci[k][0][y-1])} to ${f$(r.trust.ci[k][1][y-1])}</span>`:"";
@@ -652,7 +657,7 @@ if(!t.length&&k=="a1"&&!String(P.a2).trim())return"Enter at least one child or g
 // ---- Plain-language explanations ----
 function explain(r){const H=r.P.H,t=r.trust,hd=r.heads,k=r.kpi,F0=r.P.fund*1e6,y=Math.min(100,H),y5=Math.min(50,H),hv=v=>v==v&&v!=null?Math.round(v).toLocaleString():"none";
 $("x1").textContent=`In the middle simulation the trust is worth ${f$(t[1][y-1])} after ${y} years and ${f$(t[1][H-1])} after ${H} years, in today's dollars. The shaded band covers the middle 80% of simulations: in 1 out of 10 the trust ends below ${f$(t[0][H-1])}, and in 1 out of 10 above ${f$(t[2][H-1])}. `+
-(t[1][H-1]<F0?"The middle case ends below the starting value, so payouts are slowly spending down the trust in today's dollars.":"The middle case ends above the starting value, so investment growth more than covers the payouts.")+" The spread widens over time because small differences in yearly returns compound over many decades."+($("lg").checked?" The scale is logarithmic, so each gridline is ten times the one below.":"");
+(t[1][H-1]<F0?"The middle case ends below the starting value, so payouts are slowly spending down the trust in today's dollars.":"The middle case ends above the starting value, so investment growth more than covers the payouts.")+" The spread widens over time because small differences in yearly returns compound over many decades."+(t.ret?` Hovering shows, for the simulation on each percentile line that year, its average yearly investment return after inflation since year 1 (compounded, before fees, taxes and payouts). At year ${H} these are ${(t.ret[0][H-1]*100).toFixed(1)}% (10th percentile), ${(t.ret[1][H-1]*100).toFixed(1)}% (median) and ${(t.ret[2][H-1]*100).toFixed(1)}% (90th percentile).`:"")+($("lg").checked?" The scale is logarithmic, so each gridline is ten times the one below.":"");
 {const b=r.pbn;$("x11").textContent=`The trust's value divided by the number of family members eligible for payouts that year, in today's dollars: roughly what each person's share would be if the trust were split equally. In the middle simulation it is ${f$(b[1][0])} per person after the first year, ${f$(b[1][y-1])} after ${y} years and ${f$(b[1][H-1])} after ${H} years. In 1 out of 10 simulations it ends below ${f$(b[0][H-1])}, and in 1 out of 10 above ${f$(b[2][H-1])}. `+(b[1][H-1]<b[1][0]?"The middle line falls over time, so the family is growing faster than the trust.":"The middle line rises over time, so the trust is growing faster than the family.")+(r.P.cens?" Families that have died out are left out.":"")}
 $("x2").textContent=`A typical family has ${hv(hd[1][y-1])} living descendants after ${y} years and ${hv(hd[1][H-1])} after ${H} years. In 1 out of 10 simulations it has ${hv(hd[0][H-1])} or fewer${r.P.cens?" (counting only families still alive)":""}, and ${pt(k.ext)} of simulated family lines die out completely. A bigger family means each person's share is smaller.`;
 const gl=r.med.map((m,g)=>[g,m[y5-1]]).filter(x=>x[1]!=null).slice(0,4).map(x=>`generation ${x[0]+1} about ${f$(x[1])}`);

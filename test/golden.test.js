@@ -28,7 +28,7 @@ const at=(a,ys)=>ys.map(y=>r6(a[y-1]));
 function snap(r){const Y=[1,10,50,100,150];
 if(r.one){const o=r.one,sum=a=>Array.from(a).reduce((x,y)=>x+(y==y?y:0),0);return{people:o.people.length,living:at(o.living,Y),paid:r6(sum(o.D)),tax:r6(sum(o.tax)),fee:r6(sum(o.fee)),end:r6(o.v1[o.v1.length-1]),gen1:r6(sum(o.pay[0]))}}
 const s={kpi:Object.fromEntries(Object.entries(r.kpi).map(([k,v])=>[k,v&&typeof v=="object"?JSON.parse(JSON.stringify(v,(_,x)=>r6(x))):r6(v)])),
- trust:r.trust.map(b=>at(b,Y)),heads:at(r.heads[1],Y),perBen:at(r.pbn[1],Y),pay:r.med.slice(0,4).map(m=>at(m,Y)),tot:r.tot.map(r6),
+ trust:r.trust.map(b=>at(b,Y)),trustRet:r.trust.ret.map(b=>at(b,Y)),heads:at(r.heads[1],Y),perBen:at(r.pbn[1],Y),pay:r.med.slice(0,4).map(m=>at(m,Y)),tot:r.tot.map(r6),
  life:r.life.slice(0,4).map(l=>({g:l.g,rec:l.rec.map(r6),nps:r6(l.nps)}))};
 if(r.cmp)s.cmp={fin:r6(r.cmp.fin),life:r.cmp.life.slice(0,3).map(l=>({g:l.g,pot:r6(l.pot),alt:r6(l.alt),outr:r6(l.outr),zero:r6(l.zero)}))};
 return s}
