@@ -20,6 +20,12 @@ close(r.trust[1][9],F0-10*300000,1e-6,"year 10");assert.ok(r.trust[1][40]<1,"emp
 test("two equal children split the first year's payout equally",()=>{
 const r=sim({...flat,dist:2});close(r.med[0][0],flat.fund*1e6*.02/2,.015,"generation 1 payout in year 1")});
 
+test("percentile lines report the average real return of the simulation on them",()=>{
+// Fixed 6% nominal return with 2% inflation is 1.06/1.02 - 1 real every year, on every line.
+const r=sim({...flat,ret:6,infl:2,rtype:"nom",dist:2});for(const k of [0,1,2])for(const t of [0,24,49])close(r.trust.ret[k][t],1.06/1.02-1,1e-5,`line ${k} year ${t+1}`);
+// With random returns, the line higher up had the better average return.
+const m=sim({...D,H:100,N:300});for(const t of [49,99])assert.ok(m.trust.ret[0][t]<m.trust.ret[1][t]&&m.trust.ret[1][t]<m.trust.ret[2][t],"year "+(t+1))});
+
 test("percentiles are in order and shares are between 0 and 1",()=>{
 for(const mode of ["mc","lay","hist","simple"]){const r=sim({...D,mode,H:80,N:150});
 for(let t=0;t<80;t++){const [a,b,c]=[r.trust[0][t],r.trust[1][t],r.trust[2][t]];assert.ok(a<=b&&b<=c,`${mode} year ${t+1}`)}
